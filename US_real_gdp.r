@@ -4,7 +4,7 @@ library(broom)
 library(patchwork)
 theme_set(theme_light())
 
-source("quantmod-variants/functions.r")
+source("functions.r")
 
 gdp <- retrieve_data("GDPC1", "FRED")
 
@@ -241,7 +241,7 @@ gdp_diff_scale <-
 
 p <- gdp_full_scale + gdp_diff_scale
 
-ggsave("quantmod-variants/real-gdp-growth.png", width = 12, height = 6, plot = p)
+ggsave("graphs/real-gdp-growth.png", width = 12, height = 6, plot = p)
 
 #
 #
@@ -310,11 +310,11 @@ gdp2 <- gdp_full_scale +
     ) +
     labs(subtitle = model_contant_comment)
 
-ggsave("quantmod-variants/estimating-real-inflation.png",
+ggsave("graphs/estimating-real-inflation.png",
     width = 6,
     height = 6,
     plot = gdp2
 )
 p <- gdp2 + gdp_diff_scale
 
-ggsave("quantmod-variants/real-gdp-growth2.png", width = 12, height = 6, plot = p)
+ggsave("graphs/real-gdp-growth2.png", width = 12, height = 6, plot = p)
