@@ -23,7 +23,7 @@ unrate_nls2008 <-
     )
 
 model_2003 <- broom::augment(unrate_nls2008,
-    newdata = tibble(time = 1:(15 * 22))
+    newdata = tibble(time = 1:(15 * 12))
 ) %>%
     mutate(date = ymd(20080101) + months(time))
 
@@ -101,6 +101,32 @@ model_1990a <- broom::augment(unrate_1990a,
 broom::tidy(unrate_1990a)
 
 #
+# monthly unemployment fitting in 1990-2000
+#
+
+
+unrate2020 <-
+    unrate %>%
+    filter(date > ymd(20191001), date < ymd(20270101)) %>%
+    mutate(time = (date - ymd(20191001)) / dmonths(1)) %>%
+    filter(time > 0)
+
+unrate_2020 <-
+    nls(value ~ a0 + a1 * exp(-1 / a3 * (log(time) - a2)^2),
+        start = list(a0 = 4, a1 = 6, a2 = 3.5, a3 = 1),
+        data = unrate2020
+    )
+
+model_2020 <- broom::augment(unrate_2020,
+    newdata = tibble(time = 1:(6 * 12))
+) %>%
+    mutate(date = ymd(20191001) + months(time))
+
+broom::tidy(unrate_2020)
+
+
+
+#
 # FULL GRAPHS
 #
 
@@ -111,7 +137,8 @@ unemp <-
     geom_line(data = model_200, aes(y = .fitted), lty = 2) +
     geom_line(data = model_2003, aes(y = .fitted), lty = 2) +
     geom_line(data = model_1990a, aes(y = .fitted), lty = 2) + 
-    scale_y_continuous(limits = c(0, NA)) + 
+    # geom_line(data = model_2020, aes(y = .fitted), lty = 2) + 
+    scale_y_continuous(limits = c(0, 15)) + 
     labs(x = "Date",
         y = "Unemployment rate (in %)") +
     theme_light()
@@ -137,6 +164,7 @@ limit <-
     aes(factor(year), limit_value) +
     geom_col() + 
     theme_light() + 
+    scale_y_continuous(limits = c(0, 15)) + 
     labs(x = "Time period",
          y = "Unemployment limit value (in %)")
 
