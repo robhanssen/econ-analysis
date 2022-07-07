@@ -28,6 +28,9 @@ model_2003 <- broom::augment(unrate_nls2008,
     mutate(date = ymd(20080101) + months(time))
 
 broom::tidy(unrate_nls2008)
+broom::glance(unrate_nls2008)
+
+modelr::rsquare(unrate_nls2008, unrate2003m)
 
 #
 # monthly unemployment fitting in 2000-2005
@@ -46,6 +49,7 @@ unrate_nls2000 <-
     )
 
 broom::tidy(unrate_nls2000)
+modelr::rsquare(unrate_nls2000, unrate200m)
 
 model_200 <- broom::augment(unrate_nls2000,
     newdata = tibble(time = 1:(12 * 12))
@@ -75,7 +79,7 @@ model_1990 <- broom::augment(unrate_nls1990,
     mutate(date = ymd(19900101) + months(time))
 
 broom::tidy(unrate_nls1990)
-
+modelr::rsquare(unrate_nls1990, unrate1990)
 #
 # monthly unemployment fitting in 1990-2000
 #
@@ -99,32 +103,7 @@ model_1990a <- broom::augment(unrate_1990a,
     mutate(date = ymd(19900101) + months(time))
 
 broom::tidy(unrate_1990a)
-
-#
-# monthly unemployment fitting in 1990-2000
-#
-
-
-unrate2020 <-
-    unrate %>%
-    filter(date > ymd(20191001), date < ymd(20270101)) %>%
-    mutate(time = (date - ymd(20191001)) / dmonths(1)) %>%
-    filter(time > 0)
-
-unrate_2020 <-
-    nls(value ~ a0 + a1 * exp(-1 / a3 * (log(time) - a2)^2),
-        start = list(a0 = 4, a1 = 6, a2 = 3.5, a3 = 1),
-        data = unrate2020
-    )
-
-model_2020 <- broom::augment(unrate_2020,
-    newdata = tibble(time = 1:(6 * 12))
-) %>%
-    mutate(date = ymd(20191001) + months(time))
-
-broom::tidy(unrate_2020)
-
-
+modelr::rsquare(unrate_1990a, unrate1990a)
 
 #
 # FULL GRAPHS
@@ -153,9 +132,18 @@ extract_value <- function(mod) {
         filter(term == "a0") %>% pull(estimate)
 }
 
+extract_value_se <- function(mod) {
+    x <- mod %>% 
+        broom::tidy() %>% 
+        filter(term == "a0") %>% pull(std.error)
+    x * qnorm(0.975)
+}
+
+
 sumry <- tibble(
             year = c("2010-2020", "2000-2005", "1990-1995"),
-            limit_value = purrr::map_dbl(list(unrate_nls2008, unrate_nls2000, unrate_1990a), ~extract_value(.x))
+            limit_value = purrr::map_dbl(list(unrate_nls2008, unrate_nls2000, unrate_1990a), ~extract_value(.x)),
+            limit_value_err = purrr::map_dbl(list(unrate_nls2008, unrate_nls2000, unrate_1990a), ~extract_value_se(.x)),
     )
 
 limit <-
@@ -164,6 +152,7 @@ limit <-
     aes(factor(year), limit_value) +
     geom_col() + 
     theme_light() + 
+    geom_errorbar(aes(ymin = limit_value - limit_value_err, ymax =limit_value + limit_value_err ), width = .2) +
     scale_y_continuous(limits = c(0, 15)) + 
     labs(x = "Time period",
          y = "Unemployment limit value (in %)")
