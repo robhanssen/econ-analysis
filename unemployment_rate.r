@@ -1,162 +1,131 @@
 library(tidyverse)
 library(lubridate)
 library(patchwork)
+theme_set(theme_light())
 
 source("functions.r")
 
-unrate <- retrieve_data("UNRATE", "FRED")
+unrate_raw <- retrieve_data("UNRATE", "FRED")
 
-#
-# monthly unemployment fitting since 2008
-#
+unrate <- unrate_raw
 
-unrate2003m <-
-    unrate %>%
-    filter(date > ymd(20030101), date < ymd(20200101)) %>%
-    mutate(time = (date - ymd(20080101)) / dmonths(1)) %>%
-    filter(time > 0)
-
-unrate_nls2008 <-
+nlsmods <- function(tbl) {
     nls(value ~ a0 + a1 * exp(-1 / a3 * (log(time) - a2)^2),
         start = list(a0 = 4, a1 = 6, a2 = 3.5, a3 = 1),
-        data = unrate2003m
+        data = tbl
     )
-
-model_2003 <- broom::augment(unrate_nls2008,
-    newdata = tibble(time = 1:(15 * 12))
-) %>%
-    mutate(date = ymd(20080101) + months(time))
-
-broom::tidy(unrate_nls2008)
-broom::glance(unrate_nls2008)
-
-modelr::rsquare(unrate_nls2008, unrate2003m)
-
-#
-# monthly unemployment fitting in 2000-2005
-#
-unrate200m <-
-    unrate %>%
-    filter(date > ymd(20000101), date < ymd(20060101)) %>%
-    mutate(time = (date - ymd(20000101)) / dmonths(1)) %>%
-    filter(time > 0)
-
-
-unrate_nls2000 <-
-    nls(value ~ a0 + a1 * exp(-1 / a3 * (log(time) - a2)^2),
-        start = list(a0 = 4, a1 = 6, a2 = 3.5, a3 = 1),
-        data = unrate200m
-    )
-
-broom::tidy(unrate_nls2000)
-modelr::rsquare(unrate_nls2000, unrate200m)
-
-model_200 <- broom::augment(unrate_nls2000,
-    newdata = tibble(time = 1:(12 * 12))
-) %>%
-    mutate(date = ymd(20000101) + months(time))
-
-
-#
-# monthly unemployment fitting in 1990-1995
-#
-
-unrate1990 <-
-    unrate %>%
-    filter(date > ymd(19900101), date < ymd(19950101)) %>%
-    mutate(time = (date - ymd(19900101)) / dmonths(1)) %>%
-    filter(time > 0)
-
-unrate_nls1990 <-
-    nls(value ~ a0 + a1 * exp(-1 / a3 * (log(time) - a2)^2),
-        start = list(a0 = 4, a1 = 6, a2 = 3.5, a3 = 1),
-        data = unrate1990
-    )
-
-model_1990 <- broom::augment(unrate_nls1990,
-    newdata = tibble(time = 1:(22 * 12))
-) %>%
-    mutate(date = ymd(19900101) + months(time))
-
-broom::tidy(unrate_nls1990)
-modelr::rsquare(unrate_nls1990, unrate1990)
-#
-# monthly unemployment fitting in 1990-2000
-#
-
-
-unrate1990a <-
-    unrate %>%
-    filter(date > ymd(19900101), date < ymd(20000101)) %>%
-    mutate(time = (date - ymd(19900101)) / dmonths(1)) %>%
-    filter(time > 0)
-
-unrate_1990a <-
-    nls(value ~ a0 + a1 * exp(-1 / a3 * (log(time) - a2)^2),
-        start = list(a0 = 4, a1 = 6, a2 = 3.5, a3 = 1),
-        data = unrate1990a
-    )
-
-model_1990a <- broom::augment(unrate_1990a,
-    newdata = tibble(time = 1:(12 * 12))
-) %>%
-    mutate(date = ymd(19900101) + months(time))
-
-broom::tidy(unrate_1990a)
-modelr::rsquare(unrate_1990a, unrate1990a)
-
-#
-# FULL GRAPHS
-#
-
-unemp <-
-    ggplot(data = unrate %>% filter(date > ymd(19900101))) +
-    aes(date, value) +
-    geom_point(aes(y = value), alpha = .1) +
-    geom_line(data = model_200, aes(y = .fitted), lty = 2) +
-    geom_line(data = model_2003, aes(y = .fitted), lty = 2) +
-    geom_line(data = model_1990a, aes(y = .fitted), lty = 2) + 
-    # geom_line(data = model_2020, aes(y = .fitted), lty = 2) + 
-    scale_y_continuous(limits = c(0, 15)) + 
-    labs(x = "Date",
-        y = "Unemployment rate (in %)") +
-    theme_light()
-
-#
-# model conclusions
-#
-
-extract_value <- function(mod) {
-    mod %>% 
-        broom::tidy() %>% 
-        filter(term == "a0") %>% pull(estimate)
 }
 
-extract_value_se <- function(mod) {
-    x <- mod %>% 
-        broom::tidy() %>% 
-        filter(term == "a0") %>% pull(std.error)
-    x * qnorm(0.975)
+# define periods to investigate
+periods <- tribble(
+    ~name, ~pstart, ~pend,
+    "1957-1959", ymd(19570701), ymd(19590501),
+    "1970-1973", ymd(19700101), ymd(19730101),
+    "1974-1979", ymd(19740101), ymd(19790101),
+    "1981-1984", ymd(19810101), ymd(19840601),
+    "1991-1998", ymd(19900101), ymd(19980101),
+    "2000-2005", ymd(20000101), ymd(20070101),
+    "2010-2020", ymd(20080101), ymd(20200101)
+) %>%
+    mutate(period = pstart %--% pend)
+
+unrate$name <- NA
+
+for (i in seq_along(unrate$date)) {
+    for (j in seq_along(periods$name)) {
+        if (unrate$date[i] %within% periods$period[j]) {
+            unrate$name[i] <- periods$name[j]
+        }
+    }
 }
 
+modelcollection <-
+    unrate %>%
+    filter(!is.na(name)) %>%
+    group_by(name) %>%
+    mutate(time = (date - min(date) + 1) / dmonths(1)) %>%
+    nest() %>%
+    mutate(mod = purrr::map(data, ~ nlsmods(.)))
 
-sumry <- tibble(
-            year = c("2010-2020", "2000-2005", "1990-1995"),
-            limit_value = purrr::map_dbl(list(unrate_nls2008, unrate_nls2000, unrate_1990a), ~extract_value(.x)),
-            limit_value_err = purrr::map_dbl(list(unrate_nls2008, unrate_nls2000, unrate_1990a), ~extract_value_se(.x)),
-    )
+fittedmodels <-
+    modelcollection %>%
+    mutate(fitteddata = map(mod, broom::augment)) %>%
+    left_join(periods, by = "name") %>%
+    unnest(fitteddata) %>%
+    mutate(date = as.Date(pstart + time * dmonths(1))) %>%
+    ggplot() +
+    aes(date, .fitted, color = name) +
+    geom_line(size = 1) +
+    geom_point(data = unrate, aes(x = date, y = value), alpha = .3) +
+    scale_y_continuous(
+        breaks = seq(0, 20, 2),
+        labels = scales::number_format(
+            accuracy = .1,
+            suffix = "%"
+        ),
+        limits = c(0, 14)
+    ) +
+    labs(
+        x = "Date",
+        y = "Employment (in %)"
+    ) +
+    theme(legend.position = "none")
 
-limit <-
-    sumry %>% 
-    ggplot +
-    aes(factor(year), limit_value) +
-    geom_col() + 
-    theme_light() + 
-    geom_errorbar(aes(ymin = limit_value - limit_value_err, ymax =limit_value + limit_value_err ), width = .2) +
-    scale_y_continuous(limits = c(0, 15)) + 
-    labs(x = "Time period",
-         y = "Unemployment limit value (in %)")
+limitvalues <-
+    modelcollection %>%
+    mutate(params = map(mod, broom::tidy)) %>%
+    unnest(params) %>%
+    filter(term == "a0") %>%
+    mutate(errbar = std.error * qnorm(0.975)) %>%
+    ggplot() +
+    aes(name, estimate, fill = name) +
+    geom_col() +
+    geom_errorbar(aes(
+        ymin = estimate - errbar,
+        ymax = estimate + errbar
+    ),
+    width = .2
+    ) +
+    scale_y_continuous(
+        breaks = seq(0, 20, 2),
+        labels = scales::number_format(
+            accuracy = .1,
+            suffix = "%"
+        ),
+        limits = c(0, 14)
+    ) +
+    labs(
+        x = "Period",
+        y = "Limit unemployment (in %)"
+    ) +
+    theme(legend.position = "none")
 
-p <- unemp + limit
+peakvalues <-
+    modelcollection %>%
+    mutate(params = map(mod, broom::tidy)) %>%
+    unnest(params) %>%
+    filter(term %in% c("a0", "a1")) %>%
+    select(name, term, estimate) %>%
+    pivot_wider(names_from = term, values_from = estimate) %>%
+    mutate(peak = a0 + a1) %>%
+    ggplot() +
+    aes(name, peak, fill = name) +
+    geom_col() +
+    scale_y_continuous(
+        breaks = seq(0, 20, 2),
+        labels = scales::number_format(
+            accuracy = .1,
+            suffix = "%"
+        ),
+        limits = c(0, 14)
+    ) +
+    labs(
+        x = "Period",
+        y = "Peak unemployment (in %)"
+    ) +
+    theme(legend.position = "none")
 
-ggsave("graphs/unemployment-analysis.png", plot = p, width = 12, height = 6)
+
+p <- fittedmodels / (peakvalues + limitvalues)
+
+ggsave("graphs/unemployment-analysis.png", width = 15, height = 12, plot = p)
