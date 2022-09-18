@@ -11,9 +11,8 @@ oilfuel <-
     inner_join(
         get_index("DCOILWTICO", "FRED") %>%
             mutate(value = value) %>%
-            rename(oilprice = "value") %>% 
-            filter(oilprice > 0),
-            ,
+            rename(oilprice = "value") %>%
+            filter(oilprice > 0), ,
         get_index("GASREGW", "FRED") %>%
             rename(fuelprice = "value"),
         by = "date"
@@ -31,7 +30,8 @@ models <-
         year = year(date),
         halfdecade = decade_length * (year %/% decade_length),
         halfdecade_str = case_when(
-            halfdecade + decade_length - 1 > max_year ~ paste0(halfdecade, "-", max_year),
+            halfdecade + decade_length - 1 > max_year ~
+                        paste0(halfdecade, "-", max_year),
             TRUE ~ paste0(halfdecade, "-", halfdecade + decade_length - 1)
         ),
         halfdecade = factor(halfdecade_str)
@@ -47,14 +47,17 @@ linearanalysis <-
 
 rsq_table <-
     models %>%
-    mutate(rsq = map(models,broom::glance)) %>%
+    mutate(rsq = map(models, broom::glance)) %>%
     unnest(rsq) %>%
     select(halfdecade, r.squared) %>%
-    mutate(rsq = paste0("R^2 = ", scales::number(r.squared, accuracy = .001), ""))
+    mutate(rsq = paste0(
+        "R^2 = ",
+        scales::number(r.squared, accuracy = .001),
+        ""
+    ))
 
 
 preddate <- tail(oilfuel %>% arrange(date), 1)
-# preddate <- tail(oilfuel %>% filter(oilprice > 120),1)
 oilbase <- scales::dollar(preddate$oilprice)
 fuelbase <- scales::dollar(preddate$fuelprice)
 
@@ -71,7 +74,8 @@ linearanalysis %>%
     unnest(predictions) %>%
     select(halfdecade, .fitted, .lower, .upper) %>%
     inner_join(rsq_table) %>%
-    ggplot() + aes(y = halfdecade, x = .fitted) +
+    ggplot() +
+    aes(y = halfdecade, x = .fitted) +
     geom_point(size = 3) +
     geom_vline(xintercept = preddate$fuelprice, lty = 2) +
     geom_errorbar(aes(xmin = .lower, xmax = .upper), width = .2) +
@@ -84,19 +88,17 @@ linearanalysis %>%
     labs(
         x = "Predicted fuel price (in $/gallon)",
         y = NULL,
-        caption = "Error bars represent 95% prediction interval\nSource: Federal Reserve Bank, St. Louis (FRED)",
-        title = glue::glue("What would fuel prices have been with oil at {oilbase} per barrel over the last {period} years?")
+        caption = "Error bars represent 95% prediction interval\nSource: Federal Reserve Bank, St. Louis (FRED)", # nolint
+        title = glue::glue("What would fuel prices have been with oil at {oilbase} per barrel over the last {period} years?") # nolint
     ) +
-    theme(plot.title.position = "plot") #+
-    # geom_label(aes(x = .lower - .1, y = halfdecade, label = rsq), label.size = NA, hjust = "right")
-
+    theme(plot.title.position = "plot")
 
 ggsave("graphs/fuelprice_prediction.png", width = 8, height = 6)
 
 models %>%
     unnest(data) %>%
-    ggplot + 
-    aes(x = oilprice, y = fuelprice, color = halfdecade) + 
-    geom_point(alpha = .2, show.legend = FALSE) + 
-    geom_smooth(method = "lm", color = "black", lty = 3) + 
+    ggplot() +
+    aes(x = oilprice, y = fuelprice, color = halfdecade) +
+    geom_point(alpha = .2, show.legend = FALSE) +
+    geom_smooth(method = "lm", color = "black", lty = 3) +
     facet_wrap(~halfdecade)
