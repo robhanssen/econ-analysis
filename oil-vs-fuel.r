@@ -147,7 +147,7 @@ predictions_decade %>%
         x = "Predicted fuel price (in $/gallon); inflation-corrected by CPIAUCSL", # nolint
         y = NULL,
         caption = "Error bars represent 95% prediction interval\nSource: Federal Reserve Bank, St. Louis (FRED)", # nolint
-        title = glue::glue("What would fuel prices have been with oil at {oilbase} per barrel adjusted for inflation") # nolint
+        title = glue::glue("What would fuel prices have been with oil at {oilbase} per barrel adjusted for inflation?") # nolint
     ) +
     theme(plot.title.position = "plot")
 
