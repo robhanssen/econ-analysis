@@ -45,17 +45,26 @@ linearanalysis <-
     mutate(params = map(models, broom::tidy)) %>%
     unnest(params)
 
+# rsq_table <-
+#     models %>%
+#     mutate(rsq = map(models, broom::glance)) %>%
+#     unnest(rsq) %>%
+#     select(halfdecade, r.squared) %>%
+#     mutate(rsq = paste0(
+#         "R^2 = ",
+#         scales::number(r.squared, accuracy = .001),
+#         ""
+#     ))
+
 rsq_table <-
     models %>%
-    mutate(rsq = map(models, broom::glance)) %>%
-    unnest(rsq) %>%
-    select(halfdecade, r.squared) %>%
+    mutate(rsq = map_dbl(seq_along(halfdecade),
+           ~modelr::rsquare(models[[.x]], data[[.x]]))) %>%
     mutate(rsq = paste0(
         "R^2 = ",
-        scales::number(r.squared, accuracy = .001),
+        scales::number(rsq, accuracy = .001),
         ""
     ))
-
 
 preddate <- tail(oilfuel %>% arrange(date), 1)
 oilbase <- scales::dollar(preddate$oilprice)
