@@ -122,7 +122,7 @@ gdp_full_scale <-
     geom_line(lty = 2) +
     geom_point(
         data = gdp %>%
-            filter(date > cutoff_date_lo),
+             filter(date > cutoff_date_lo),
         aes(x = date, y = value)
     ) +
     scale_x_date(date_break = "2 year", date_label = "%Y") +
@@ -142,11 +142,11 @@ gdp_full_scale <-
         color = "darkgreen",
         label = "prediction"
     ) +
-    annotate("label",
-        x = ymd("2018-06-01"),
-        y = 20000,
-        label = comment
-    ) +
+    # annotate("label",
+    #     x = ymd("2018-06-01"),
+    #     y = 20000,
+    #     label = comment
+    # ) +
     annotate("label",
         x = ymd("2014-11-01"),
         y = 18000,
@@ -155,7 +155,7 @@ gdp_full_scale <-
     labs(
         x = "Date",
         y = "Real GDP in (billions of $)",
-        caption = "Model trained between 2009 and 2017 and predicted into 2021"
+        caption = "Model trained between 2009 and 2017 and predicted into today"
     )
 
 # ggsave("quantmod-variants/us-gdp-since-1980.png",
@@ -223,20 +223,20 @@ gdp_diff_scale <-
         color = "darkgreen",
         label = "prediction"
     ) +
-    annotate("label",
-        x = ymd("2018-01-01"),
-        y = 900,
-        label = comment
-    ) +
-    annotate("label",
-        x = ymd("2019-09-01"),
-        y = -2500,
-        label = dip_comment
-    ) +
+    # annotate("label",
+    #     x = ymd("2018-01-01"),
+    #     y = 900,
+    #     label = comment
+    # ) +
+    # annotate("label",
+    #     x = ymd("2019-09-01"),
+    #     y = -2500,
+    #     label = dip_comment
+    # ) +
     labs(
         x = "Date",
         y = "Real GDP growth above Obama model (in $B)",
-        caption = "Model trained between 2009 and 2017 and predicted into 2021"
+        caption = "Model trained between 2009 and 2017 and predicted into today"
     )
 
 p <- gdp_full_scale + gdp_diff_scale
@@ -296,25 +296,25 @@ model_contant_comment <- paste0(
 )
 
 
-gdp2 <- gdp_full_scale +
-    geom_line(
-        data = predict_post_2020,
-        aes(y = .fitted),
-        lty = 2,
-        color = "gray50"
-    ) +
-    annotate("label",
-        x = ymd("2020-01-01"),
-        y = 24000,
-        label = paste0(pct_increase, "\nr.sq = ", scales::pvalue(rsq))
-    ) +
-    labs(subtitle = model_contant_comment)
+# gdp2 <- gdp_full_scale +
+#     geom_line(
+#         data = predict_post_2020,
+#         aes(y = .fitted),
+#         lty = 2,
+#         color = "gray50"
+#     ) +
+#     annotate("label",
+#         x = ymd("2020-01-01"),
+#         y = 24000,
+#         label = paste0(pct_increase, "\nr.sq = ", scales::pvalue(rsq))
+#     ) +
+#     labs(subtitle = model_contant_comment)
 
-ggsave("graphs/estimating-real-inflation.png",
-    width = 6,
-    height = 6,
-    plot = gdp2
-)
-p <- gdp2 + gdp_diff_scale
+# ggsave("graphs/estimating-real-inflation.png",
+#     width = 6,
+#     height = 6,
+#     plot = gdp2
+# )
+# p <- gdp2 + gdp_diff_scale
 
-ggsave("graphs/real-gdp-growth2.png", width = 12, height = 6, plot = p)
+# ggsave("graphs/real-gdp-growth2.png", width = 12, height = 6, plot = p)
