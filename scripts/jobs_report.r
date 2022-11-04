@@ -19,27 +19,6 @@ jobs <- retrieve_data("PAYEMS", "FRED") %>%
     ungroup() %>%
     mutate(prezpd = cut(date, breaks = inaugdates))
 
-
-View(jobs)
-
-jobs %>%
-    filter(date > ymd(19791231)) %>%
-    ggplot() +
-    aes(date, growth_month) +
-    geom_point() +
-    geom_vline(xintercept = inaugdates, alpha = .5) +
-    scale_y_continuous(limits = c(-1e3, 1e3))
-
-
-jobs %>%
-    filter(date > ymd(19791231)) %>%
-    ggplot() +
-    aes(date, growth_annual) +
-    geom_point() +
-    geom_vline(xintercept = inaugdates, alpha = .5) +
-    scale_y_continuous(limits = c(-1e4, 1e4))
-
-
 pjobs <- jobs %>%
     filter(date > ymd(19810120)) %>%
     group_by(prezpd) %>%
