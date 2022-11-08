@@ -48,29 +48,6 @@ dolexch <-
     ) %>%
     mutate(usd = 1)
 
-
-coins <- colnames(dolexch)[-1]
-
-doluniversal <-
-    map_dfc(coins, ~ tibble(.x, curr_vec[.x] * dolexch[, .x])) %>%
-    select(coins) %>%
-    bind_cols(date = dolexch$date) %>%
-    pivot_longer(-date) %>%
-    group_by(date) %>%
-    summarize(totalcoin = sum(value), .groups = "drop")
-
-strata <- mean(doluniversal$totalcoin)
-
-doluniversal %>%
-    ggplot() +
-    aes(date, totalcoin / strata) +
-    geom_line() +
-    labs(
-        x = "Date",
-        y = "Dollar value compared\nto basket of currencies"
-    )
-
-
 currency_graph <- function(curr = usd, datadf = dolexch, wght = curr_vec) {
     coins <- colnames(datadf)[-1]
 
@@ -100,6 +77,13 @@ currency_graph <- function(curr = usd, datadf = dolexch, wght = curr_vec) {
         )
 }
 
-p <- currency_graph(euro) / currency_graph(pound) / currency_graph(usd)
+p <- currency_graph(euro) /
+    currency_graph(pound) /
+    currency_graph(usd) /
+    currency_graph(cad) /
+    currency_graph(yuan) /
+    currency_graph(yen) /
+    currency_graph(won) /
+    currency_graph(rupee)
 
-ggsave("graphs/currency-basket.png", plot = p)
+ggsave("graphs/currency-basket.png", plot = p, height = 16, width = 8)
