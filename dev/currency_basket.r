@@ -102,4 +102,4 @@ currency_graph <- function(curr = usd, datadf = dolexch, wght = curr_vec) {
 
 p <- currency_graph(euro) / currency_graph(pound) / currency_graph(usd)
 
-ggsave("dev/basket.png", plot = p)
+ggsave("graphs/currency-basket.png", plot = p)
