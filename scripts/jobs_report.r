@@ -59,3 +59,32 @@ pjobs %>%
     )
 
 ggsave("graphs/jobsgrowth_by_president.png", width = 8, height = 6)
+
+mx <- jobs %>% filter(date < ymd(20210101)) %>% summarize(mx = max(value)) %>% pull(mx)
+
+jobs %>%
+    filter(date > ymd(19800101)) %>%
+    ggplot + aes(date, value) + geom_line() + 
+    scale_y_continuous(labels = scales::label_number(scale = 1e-6, suffix = "M")) + 
+    geom_vline(xintercept = inaugdates, lty = 2, alpha = .5) + 
+    geom_hline(yintercept = mx, lty = 2, alpha = .5)
+
+
+
+jobspop <- retrieve_data(indexes =  c("PAYEMS","POPTOTUSA647NWDB"), "FRED") %>%
+    # estimate populations
+    bind_rows(tibble(date = ymd(20220101), index  = "POPTOTUSA647NWDB", value  = 332403650 )) %>%
+    bind_rows(tibble(date = ymd(20221001), index  = "POPTOTUSA647NWDB", value  = 337177710 )) %>%
+    # end estimations
+    pivot_wider(names_from = "index", values_from = "value") %>%
+    drop_na() %>% 
+    mutate(PAYEMS = PAYEMS * 1000) %>%
+    mutate(workingpop = PAYEMS / POPTOTUSA647NWDB)
+
+jobspop %>%
+    filter(date > ymd(19800101)) %>%
+    ggplot + aes(date, workingpop) + geom_line() +
+    geom_vline(xintercept = inaugdates, lty = 2, alpha = .5) + 
+    scale_y_continuous(labels = scales::label_percent(accuracy = 1), breaks = .05 * 0:20) +
+    labs(x = "Date", 
+        y = "Working population as\nfraction of the total population")
