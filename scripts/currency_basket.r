@@ -65,15 +65,19 @@ currency_graph <- function(curr = usd, datadf = dolexch, wght = curr_vec) {
         group_by(date) %>%
         summarize(totalcoin = sum(value), .groups = "drop")
 
-    strata <- mean(universalcoin$totalcoin)
+    strata <- universalcoin %>%
+        filter(date >= lubridate::ymd(20000101)) %>%
+        summarize(x = first(totalcoin)) %>%
+        pull(x)
 
     universalcoin %>%
         ggplot() +
         aes(date, totalcoin / strata) +
         geom_line() +
+        geom_hline(yintercept = 1, alpha = .5) +
         labs(
             x = "Date",
-            y = paste(str, "value compared\nto basket of currencies")
+            y = paste(str)
         )
 }
 
@@ -84,6 +88,10 @@ p <- currency_graph(euro) /
     currency_graph(yuan) /
     currency_graph(yen) /
     currency_graph(won) /
-    currency_graph(rupee)
+    currency_graph(rupee) +
+    plot_annotation(
+        title = "Relative strength of currency vs a basket of currencies",
+        subtitle = "Indexed to Jan 1, 2000"
+    )
 
 ggsave("graphs/currency-basket.png", plot = p, height = 16, width = 8)
