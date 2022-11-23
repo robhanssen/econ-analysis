@@ -195,3 +195,5 @@ models %>%
         inherit.aes = FALSE
     ) +
     theme(legend.position = "none")
+
+ggsave("dev/gdp_graph.png")
