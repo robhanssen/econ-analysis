@@ -48,7 +48,7 @@ dolexch <-
     ) %>%
     mutate(usd = 1)
 
-currency_graph <- function(curr = usd, datadf = dolexch, wght = curr_vec) {
+currency_graph <- function(curr = usd, datadf = dolexch, wght = curr_vec, from_date = lubridate::ymd(20000101)) {
     coins <- colnames(datadf)[-1]
 
     str <- toupper(rlang::as_label(rlang::enquo(curr)))
@@ -71,6 +71,7 @@ currency_graph <- function(curr = usd, datadf = dolexch, wght = curr_vec) {
         pull(x)
 
     universalcoin %>%
+        filter(date >= from_date) %>%
         ggplot() +
         aes(date, totalcoin / strata) +
         geom_line() +
@@ -81,14 +82,16 @@ currency_graph <- function(curr = usd, datadf = dolexch, wght = curr_vec) {
         )
 }
 
-p <- currency_graph(euro) /
-    currency_graph(pound) /
-    currency_graph(usd) /
-    currency_graph(cad) /
-    currency_graph(yuan) /
-    currency_graph(yen) /
-    currency_graph(won) /
-    currency_graph(rupee) +
+first_date <- first(dolexch$date)
+
+p <- currency_graph(euro, from_date = first_date) /
+    currency_graph(pound, from_date = first_date) /
+    currency_graph(usd, from_date = first_date) /
+    currency_graph(cad, from_date = first_date) /
+    currency_graph(yuan, from_date = first_date) /
+    currency_graph(yen, from_date = first_date) /
+    currency_graph(won, from_date = first_date) /
+    currency_graph(rupee, from_date = first_date) +
     plot_annotation(
         title = "Relative strength of currency vs a basket of currencies",
         subtitle = "Indexed to Jan 1, 2000"
