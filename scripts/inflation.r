@@ -11,6 +11,9 @@ inflation <- get_index("CPIAUCSL") %>%
     mutate(annual_inflation = value / lag(value) - 1) %>%
     ungroup()
 
+fedrate <- get_index("DFEDTARU") %>%
+    arrange(date)
+
 inflate_label <-
     inflation %>%
     slice_max(date, n = 1) %>%
@@ -19,8 +22,10 @@ inflate_label <-
         label = glue::glue(format(date, format = "%b %Y"), "\n{inflation}")
     )
 
+cutoff_date <- ymd(20100101)
+
 inflation %>%
-    filter(date >= ymd(20100101)) %>%
+    filter(date >= cutoff_date) %>%
     ggplot() +
     aes(date, annual_inflation) +
     geom_line() +
@@ -37,7 +42,7 @@ inflation %>%
     labs(
         x = "Date",
         y = "Annual inflation (in %)",
-        caption = "Source: FRED CPIAUCSL"
+        caption = "Source: FRED CPIAUCSL and DFEDTARU"
     ) +
     ggrepel::geom_label_repel(
         data = inflate_label,
@@ -55,17 +60,16 @@ inflation %>%
             y = annual_inflation
         )
     ) +
-    geom_hline(
-        yintercept = 0.02, lty = 1,
-        color = "gray50", size = 1,
-        alpha = .3
-    ) +
     annotate("text",
         x = inflate_label$date,
-        y = .018,
-        label = "FED TARGET",
+        y = .008,
+        label = "FED\nTARGET\nRATE",
         color = "gray50",
         alpha = .3
+    ) +
+    geom_line(
+        data = fedrate %>% filter(date >= cutoff_date),
+        aes(x = date, y = value / 100), color = "gray70"
     )
 
 ggsave("graphs/us_inflation.png", width = 8, height = 6)
