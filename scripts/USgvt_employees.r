@@ -47,6 +47,8 @@ abs_gov <-
 
 gvt_pop <- retrieve_data(indexes = c("POPTOTUSA647NWDB", "USGOVT"), src = "FRED") %>%
     pivot_wider(names_from = "index", values_from = "value") %>%
+    arrange(date) %>%
+    fill(POPTOTUSA647NWDB) %>%
     mutate(usgvtbypop = USGOVT / POPTOTUSA647NWDB  * 1000) %>%
     filter(!is.na(usgvtbypop)) %>%
     left_join(presidentinfo %>%
