@@ -67,34 +67,34 @@ pjobs %>%
 
 ggsave("graphs/jobsgrowth_by_president.png", width = 8, height = 6)
 
-mx <- jobs %>%
-    filter(date < ymd(20210101)) %>%
-    summarize(mx = max(value)) %>%
-    pull(mx)
-
-jobs %>%
-    filter(date > ymd(19800101)) %>%
-    ggplot() +
-    aes(date, value) +
-    geom_line() +
-    scale_y_continuous(
-        labels = scales::label_number(
-            scale = 1e-6,
-            suffix = "M"
-        )
-    ) +
-    geom_vline(xintercept = inaugdates, lty = 2, alpha = .5) +
-    geom_hline(yintercept = mx, lty = 2, alpha = .5)
-
-
-
 jobspop <- retrieve_data(indexes = c("PAYEMS", "POPTOTUSA647NWDB"), "FRED") %>%
     pivot_wider(names_from = "index", values_from = "value") %>%
     arrange(date) %>%
-    fill(POPTOTUSA647NWDB, .direction = "down") %>% 
+    fill(POPTOTUSA647NWDB, .direction = "down") %>%
     drop_na() %>%
     mutate(PAYEMS = PAYEMS * 1000) %>%
     mutate(workingpop = PAYEMS / POPTOTUSA647NWDB)
+
+date_breaks <-
+    ymd(c(
+        19680101,
+        19750101,
+        19810101,
+        19920101,
+        20020101,
+        20100101,
+        20210101,
+        20300101
+    ))
+
+maxes <-
+    jobspop %>%
+    mutate(periods = cut(date, breaks = date_breaks)) %>%
+    group_by(periods) %>%
+    slice_max(workingpop, n = 1) %>%
+    ungroup() %>%
+    drop_na() %>%
+    mutate(workingpop_lab = scales::percent(workingpop, accuracy = .1))
 
 (jobspop %>%
     filter(date > ymd(19600101)) %>%
@@ -109,21 +109,32 @@ jobspop <- retrieve_data(indexes = c("PAYEMS", "POPTOTUSA647NWDB"), "FRED") %>%
         y = "Total working population"
     )
 ) +
-
-(jobspop %>%
-    filter(date > ymd(19600101)) %>%
-    ggplot() +
-    aes(date, workingpop) +
-    geom_line() +
-    scale_y_continuous(
-        labels = scales::label_percent(accuracy = 1),
-        breaks = .05 * 0:20,
-        limits = c(.25,.5)
+    (jobspop %>%
+        filter(date > ymd(19600101)) %>%
+        ggplot() +
+        aes(x = date, y = workingpop) +
+        geom_line() +
+        scale_y_continuous(
+            labels = scales::label_percent(accuracy = 1),
+            breaks = .05 * 0:20,
+            limits = c(.25, .5)
+        ) +
+        geom_point(data = maxes, size = 3, alpha = .3) +
+        ggrepel::geom_text_repel(
+            data = maxes,
+            aes(
+                y = workingpop + .01,
+                label = workingpop_lab
+            ),
+        ) +
+        labs(
+            x = "Date",
+            y = "Working population as\nfraction of the total population"
+        )
     ) +
-    labs(
-        x = "Date",
-        y = "Working population as\nfraction of the total population"
+    plot_annotation(
+        caption =
+            "Source: FRED St. Louis, PAYEMS and POPTOTUSA647NWDB"
     )
-) + plot_annotation(caption = "Source: FRED St. Louis, PAYEMS and POPTOTUSA647NWDB")
 
 ggsave("graphs/labor-participation.png", width = 12, height = 6)
