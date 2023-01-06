@@ -89,34 +89,41 @@ jobs %>%
 
 
 jobspop <- retrieve_data(indexes = c("PAYEMS", "POPTOTUSA647NWDB"), "FRED") %>%
-    # estimate populations
-    bind_rows(tibble(
-        date = ymd(20220101),
-        index = "POPTOTUSA647NWDB",
-        value = 332403650
-    )) %>%
-    bind_rows(tibble(
-        date = ymd(20221001),
-        index = "POPTOTUSA647NWDB",
-        value = 337177710
-    )) %>%
-    # end estimations
     pivot_wider(names_from = "index", values_from = "value") %>%
+    arrange(date) %>%
+    fill(POPTOTUSA647NWDB, .direction = "down") %>% 
     drop_na() %>%
     mutate(PAYEMS = PAYEMS * 1000) %>%
     mutate(workingpop = PAYEMS / POPTOTUSA647NWDB)
 
-jobspop %>%
-    filter(date > ymd(19800101)) %>%
+(jobspop %>%
+    filter(date > ymd(19600101)) %>%
+    ggplot() +
+    aes(date, PAYEMS) +
+    geom_line() +
+    scale_y_continuous(
+        labels = scales::label_number(scale = 1e-6, suffix = " M"),
+    ) +
+    labs(
+        x = "Date",
+        y = "Total working population"
+    )
+) +
+
+(jobspop %>%
+    filter(date > ymd(19600101)) %>%
     ggplot() +
     aes(date, workingpop) +
     geom_line() +
-    geom_vline(xintercept = inaugdates, lty = 2, alpha = .5) +
     scale_y_continuous(
         labels = scales::label_percent(accuracy = 1),
-        breaks = .05 * 0:20
+        breaks = .05 * 0:20,
+        limits = c(.25,.5)
     ) +
     labs(
         x = "Date",
         y = "Working population as\nfraction of the total population"
     )
+) + plot_annotation(caption = "Source: FRED St. Louis, PAYEMS and POPTOTUSA647NWDB")
+
+ggsave("graphs/labor-participation.png", width = 12, height = 6)
