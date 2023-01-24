@@ -1,5 +1,6 @@
 library(tidyverse)
 library(lubridate)
+library(patchwork)
 theme_set(theme_light())
 
 source("functions.r")
@@ -11,16 +12,15 @@ initialclaims <- get_index("ICSA") %>%
     select(-index)
 
 cutoff_date <- ymd(20140101)
-base_years <- c(2017, 2018, 2019)
+base_years <- c(2016, 2017, 2018, 2019)
 
-
-sigma <- 4
-q0 <- pnorm(sigma / 2)
+sigma_width <- 4
+q0 <- pnorm(sigma_width / 2)
 
 annot <-
-    glue::glue("{sigma}\U03C3 based on period\nFY{min(base_years)}-{max(base_years)}") # nolint
+    glue::glue("{sigma_width}\U03C3 based on period\nfull-year {min(base_years)}-{max(base_years)}") # nolint
 
-quants_2019 <-
+quants_average <-
     with(
         initialclaims,
         quantile(
@@ -29,18 +29,19 @@ quants_2019 <-
         )
     )
 
-initialclaims %>%
+claimsplot <-
+    initialclaims %>%
     filter(date >= cutoff_date) %>%
     ggplot() +
     aes(date, claims) +
     geom_line(color = "gray30", alpha = .8, size = .6) +
     geom_hline(
-        yintercept = quants_2019,
+        yintercept = quants_average,
         size = 2, alpha = .3, color = "gray50"
     ) +
     scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
     scale_y_continuous(
-        breaks = 100e3 * 1:100,
+        breaks = 100e3 * 0:100,
         labels = scales::label_number(
             scale = 1e-3,
             suffix = " K"
@@ -50,16 +51,17 @@ initialclaims %>%
     labs(
         x = "", y = "",
         title = "Weekly initial unemployment claims",
-        caption = "Source: FRED St. Louis ICSA data\nLine shows 26-week rolling average") + # nolint
+        caption = "Source: FRED St. Louis ICSA data\nLine shows 26-week rolling average" # nolint
+    ) +
     annotate("text",
         x = cutoff_date + months(1),
-        y = mean(quants_2019), label = annot,
+        y = mean(quants_average), label = annot,
         hjust = 0, color = "gray50", alpha = .8,
         size = 3
     ) +
     geom_segment(aes(
         x = cutoff_date, xend = cutoff_date,
-        y = 1.05 * min(quants_2019), yend = 0.95 * max(quants_2019)
+        y = 1.05 * min(quants_average), yend = 0.95 * max(quants_average)
     ),
     color = "gray85", alpha = .3, size = 2,
     ) +
@@ -75,4 +77,30 @@ initialclaims %>%
         plot.caption.position = "plot"
     )
 
-ggsave("graphs/initial_unemp_claims.png", width = 8, height = 5)
+normal_label <-
+    glue::glue("Normality based on period\nfull-year {min(base_years)}-{max(base_years)}") # nolint
+
+qqinset <-
+    initialclaims %>%
+    filter(year %in% base_years) %>%
+    ggplot() +
+    aes(sample = claims) +
+    geom_qq_line(alpha = .3) +
+    stat_qq(alpha = .1) +
+    labs(x = "", y = "") +
+    scale_y_continuous(labels = scales::label_number(
+        scale = 1e-3,
+        suffix = "K"
+    )) +
+    annotate("text",
+        x = -3, y = 280000,
+        label = normal_label, hjust = 0, size = 2
+    ) +
+    theme(
+        plot.background = element_rect(fill = "transparent")
+    )
+
+
+p <- claimsplot + inset_element(qqinset, .01, .6, .3, .99)
+
+ggsave("graphs/initial_unemp_claims.png", width = 8, height = 5, plot = p)
