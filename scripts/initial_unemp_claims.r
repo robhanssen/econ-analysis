@@ -14,11 +14,12 @@ initialclaims <- get_index("ICSA") %>%
 cutoff_date <- ymd(20140101)
 base_years <- c(2016, 2017, 2018, 2019)
 
-sigma_width <- 4
+sigma_width <- 6
 q0 <- pnorm(sigma_width / 2)
 
 annot <-
-    glue::glue("{sigma_width}\U03C3 based on period\nfull-year {min(base_years)}-{max(base_years)}") # nolint
+    glue::glue("{sigma_width}\U03C3 based on period\n",
+               "full-year {min(base_years)}-{max(base_years)}")
 
 quants_average <-
     with(
@@ -34,7 +35,7 @@ claimsplot <-
     filter(date >= cutoff_date) %>%
     ggplot() +
     aes(date, claims) +
-    geom_line(color = "gray30", alpha = .8, size = .6) +
+    geom_point(color = "gray30", alpha = .5, size = .6) +
     geom_hline(
         yintercept = quants_average,
         size = 2, alpha = .3, color = "gray50"
@@ -61,9 +62,9 @@ claimsplot <-
     ) +
     geom_segment(aes(
         x = cutoff_date, xend = cutoff_date,
-        y = 1.05 * min(quants_average), yend = 0.95 * max(quants_average)
+        y = min(quants_average) + 10000, yend = max(quants_average) - 10000
     ),
-    color = "gray85", alpha = .3, size = 2,
+    color = "gray85", alpha = .3, size = 1,
     ) +
     geom_line(
         aes(y = zoo::rollmean(claims, 26, na.pad = TRUE, align = "center")),
@@ -78,7 +79,8 @@ claimsplot <-
     )
 
 normal_label <-
-    glue::glue("Normality based on period\nfull-year {min(base_years)}-{max(base_years)}") # nolint
+    glue::glue("Normality based on period\n",
+               "full-year {min(base_years)}-{max(base_years)}")
 
 qqinset <-
     initialclaims %>%
@@ -86,7 +88,7 @@ qqinset <-
     ggplot() +
     aes(sample = claims) +
     geom_qq_line(alpha = .3) +
-    stat_qq(alpha = .1) +
+    stat_qq(alpha = .1, size = .5) +
     labs(x = "", y = "") +
     scale_y_continuous(labels = scales::label_number(
         scale = 1e-3,
@@ -99,7 +101,6 @@ qqinset <-
     theme(
         plot.background = element_rect(fill = "transparent")
     )
-
 
 p <- claimsplot + inset_element(qqinset, .01, .6, .3, .99)
 
