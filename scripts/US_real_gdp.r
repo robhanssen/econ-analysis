@@ -66,7 +66,7 @@ modelconstant <-
     filter(term == "date") %>%
     pull(estimate)
 
-pct_increase <- scales::percent(10 ^ (modelconstant * 365) - 1, accuracy = .1)
+pct_increase <- scales::percent(10^(modelconstant * 365) - 1, accuracy = .1)
 
 ten_years <- 86400 * 365 * 10
 
@@ -122,7 +122,7 @@ gdp_full_scale <-
     geom_line(lty = 2) +
     geom_point(
         data = gdp %>%
-             filter(date > cutoff_date_lo),
+            filter(date > cutoff_date_lo),
         aes(x = date, y = value)
     ) +
     scale_x_date(date_break = "2 year", date_label = "%Y") +
@@ -260,9 +260,10 @@ gdpmodel <-
 
 rsq <-
     gdpmodel %>%
-    mutate(modelq = map(gdpmodel,
-            function(x) x %>% glance())
-            ) %>%
+    mutate(modelq = map(
+        gdpmodel,
+        function(x) x %>% glance()
+    )) %>%
     unnest(modelq) %>%
     pull(r.squared)
 
@@ -271,14 +272,15 @@ model_constant_pre2020 <- modelconstant
 
 modelconstant <-
     gdpmodel %>%
-    mutate(modelq = map(gdpmodel,
-        function(x) x %>% tidy())
-        ) %>%
+    mutate(modelq = map(
+        gdpmodel,
+        function(x) x %>% tidy()
+    )) %>%
     unnest(modelq) %>%
     filter(term == "date") %>%
     pull(estimate)
 
-pct_increase <- scales::percent(10 ^ (modelconstant * 365) - 1, accuracy = .1)
+pct_increase <- scales::percent(10^(modelconstant * 365) - 1, accuracy = .1)
 
 predict_post_2020 <-
     gdpmodel %>%
@@ -289,7 +291,7 @@ predict_post_2020 <-
     unnest(modelq) %>%
     mutate(across(.cols = .fitted:.upper, .fns = ~ 10^.x))
 
-model_contant_inc <- 10 ^ (365 * (modelconstant - model_constant_pre2020)) - 1
+model_contant_inc <- 10^(365 * (modelconstant - model_constant_pre2020)) - 1
 model_contant_comment <- paste0(
     "Estimate inflation: ", scales::percent(model_contant_inc, accuracy = .1),
     " over 2010s model"
@@ -318,3 +320,46 @@ model_contant_comment <- paste0(
 # p <- gdp2 + gdp_diff_scale
 
 # ggsave("graphs/real-gdp-growth2.png", width = 12, height = 6, plot = p)
+
+#
+# GDP growth
+#
+
+gdp %>%
+    arrange(date) %>%
+    mutate(month = month(date), year = year(date)) %>%
+    group_by(month) %>%
+    mutate(gdp_growth = value / lag(value) - 1) %>%
+    ungroup() %>%
+    drop_na() %>%
+    filter(date > ymd(19791231)) %>%
+    ggplot() +
+    aes(date, gdp_growth) +
+    geom_line() +
+    labs(x = "", y = "Annual real GDP growth (in %)") +
+    scale_x_date(date_breaks = "4 years", date_labels = "%Y") +
+    scale_y_continuous(labels = scales::label_percent()) +
+    geom_vline(xintercept = inaugdates, lty = 2, alpha = .3) +
+    geom_hline(yintercept = 0, lty = 1, alpha = .3, size = 1)
+
+full_join(presidentinfo, gdp, by = c("inaugdate" = "date")) %>%
+    rename(date = inaugdate) %>%
+    arrange(date) %>%
+    fill(c("president", "party"), .direction = "down") %>%
+    select(-floordate) %>%
+    drop_na() %>%
+    mutate(month = month(date)) %>%
+    group_by(month) %>%
+    mutate(gdp_growth = value / lag(value) - 1) %>%
+    ungroup() %>%
+    drop_na() %>%
+    filter(date > ymd(19791231)) %>% View()
+    ggplot() +
+    aes(date, gdp_growth, color = party, group = TRUE) +
+    geom_line(show.legend = FALSE) +
+    labs(x = "", y = "Annualized real GDP growth (in %)") +
+    scale_x_date(date_breaks = "4 years", date_labels = "%Y") +
+    scale_y_continuous(labels = scales::label_percent()) +
+    geom_vline(xintercept = inaugdates, lty = 2, alpha = .3) +
+    geom_hline(yintercept = 0, lty = 1, alpha = .3, size = 1) +
+    scale_color_manual(values = partycolor)
