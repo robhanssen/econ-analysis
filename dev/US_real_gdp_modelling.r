@@ -15,7 +15,7 @@ gdp_plot <-
     fill(party, .direction = "down")
 
 
-gdp_plot %>%
+gdp_graph <- gdp_plot %>%
     ggplot() +
     aes(date, value, color = party, group = TRUE) +
     geom_line() +
@@ -84,7 +84,7 @@ gdp_data <-
     gdp %>%
     mutate(period = cut(date, breaks = date_cuts))
 
-models %>%
+g <- models %>%
     mutate(extradata = map(
         gdp_model,
         ~ broom::augment(.x, newdata = futuredata)
@@ -115,7 +115,7 @@ growth_models <-
     filter(term == "date") %>%
     mutate(growth = 10 ^ (estimate * 365) - 1)
 
-growth_models %>%
+g <- growth_models %>%
     ggplot(aes(period, growth)) +
     geom_col() +
     scale_y_continuous(labels = scales::label_percent())
@@ -197,3 +197,37 @@ models %>%
     theme(legend.position = "none")
 
 ggsave("dev/gdp_graph.png")
+
+models %>%
+    mutate(extradata = map(
+        gdp_model,
+        ~ broom::augment(.x,
+            newdata = futuredata
+        )
+    )) %>%
+    unnest(extradata) %>%
+    mutate(gdp_real = 10 ^ (.fitted)) %>%
+    mutate(period2 = cut(date, breaks = date_cuts)) %>%
+    filter(period == period2) %>%
+    left_join(gdp_data, by = c("date", "period")) %>%
+    mutate(model_diff = value - gdp_real) %>%
+    drop_na() %>%
+    ggplot() +
+    aes(x = date, y = model_diff, color = period) +
+    geom_line(show.legend = FALSE, alpha = .3) +
+    geom_label(
+        data = label,
+        aes(
+            x = date + years(4),
+            y = .1,
+            label = growth,
+            fill = factor(date)
+        ),
+        hjust = 0,
+        inherit.aes = FALSE
+    ) +
+    scale_y_continuous(labels = scales::dollar_format(suffix = "B")) +
+    theme(legend.position = "none")
+
+
+    ggsave("dev/gdp_div_graph.png", width = 8, height = 4)
