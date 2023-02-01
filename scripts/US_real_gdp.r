@@ -353,7 +353,7 @@ full_join(presidentinfo, gdp, by = c("inaugdate" = "date")) %>%
     mutate(gdp_growth = value / lag(value) - 1) %>%
     ungroup() %>%
     drop_na() %>%
-    filter(date > ymd(19791231)) %>% View()
+    filter(date > ymd(19791231)) %>% 
     ggplot() +
     aes(date, gdp_growth, color = party, group = TRUE) +
     geom_line(show.legend = FALSE) +
