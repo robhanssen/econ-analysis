@@ -67,13 +67,22 @@ pjobs %>%
 
 ggsave("graphs/jobsgrowth_by_president.png", width = 8, height = 6)
 
-jobspop <- retrieve_data(indexes = c("PAYEMS", "POPTOTUSA647NWDB"), "FRED") %>%
+jobspop_dat <-
+    retrieve_data(indexes = c("PAYEMS", "POPTOTUSA647NWDB"), "FRED") %>%
     pivot_wider(names_from = "index", values_from = "value") %>%
     arrange(date) %>%
     fill(POPTOTUSA647NWDB, .direction = "down") %>%
     drop_na() %>%
     mutate(PAYEMS = PAYEMS * 1000) %>%
     mutate(workingpop = PAYEMS / POPTOTUSA647NWDB)
+
+jobspop <-
+    full_join(presidentinfo, jobspop_dat, by = c("inaugdate" = "date")) %>%
+    arrange(inaugdate) %>%
+    select(-floordate) %>%
+    fill(c("president", "party")) %>%
+    drop_na(workingpop) %>%
+    rename(date = inaugdate)
 
 date_breaks <-
     ymd(c(
@@ -99,11 +108,12 @@ maxes <-
 (jobspop %>%
     filter(date > ymd(19600101)) %>%
     ggplot() +
-    aes(date, PAYEMS) +
-    geom_line() +
+    aes(date, PAYEMS, color = party, group = TRUE) +
+    geom_line(show.legend = FALSE) +
     scale_y_continuous(
         labels = scales::label_number(scale = 1e-6, suffix = " M"),
     ) +
+    scale_color_manual(values = c("R" = "#ff0803", "D" = "#0000ff")) +
     labs(
         x = "Date",
         y = "Total working population"
@@ -112,21 +122,22 @@ maxes <-
     (jobspop %>%
         filter(date > ymd(19600101)) %>%
         ggplot() +
-        aes(x = date, y = workingpop) +
-        geom_line() +
+        aes(x = date, y = workingpop, color = party, group = TRUE) +
+        geom_line(show.legend = FALSE) +
         scale_y_continuous(
             labels = scales::label_percent(accuracy = 1),
             breaks = .05 * 0:20,
             limits = c(.25, .5)
         ) +
-        geom_point(data = maxes, size = 3, alpha = .3) +
+        geom_point(data = maxes, size = 3, alpha = .3, show.legend = FALSE) +
         ggrepel::geom_text_repel(
             data = maxes,
             aes(
                 y = workingpop + .01,
                 label = workingpop_lab
-            ),
+            ), show.legend = FALSE
         ) +
+        scale_color_manual(values = c("R" = "#ff0803", "D" = "#0000ff")) +
         labs(
             x = "Date",
             y = "Working population as\nfraction of the total population"
