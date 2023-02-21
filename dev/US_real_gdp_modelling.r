@@ -147,25 +147,26 @@ models %>%
     scale_y_continuous(labels = scales::label_percent())
 
 
-models %>%
-    mutate(extradata = map(
-        gdp_model,
-        ~ broom::augment(.x,
-            newdata = futuredata
-        )
-    )) %>%
-    unnest(extradata) %>%
-    mutate(gdp_real = 10 ^ (.fitted)) %>%
-    mutate(period2 = cut(date, breaks = date_cuts)) %>%
-    filter(period == period2) %>%
-    left_join(gdp_data, by = c("date", "period")) %>%
-    mutate(model_diff = value - gdp_real) %>%
-    drop_na() %>%
-    ggplot() +
-    aes(x = date, y = model_diff, color = period) +
-    geom_line(show.legend = FALSE)
+# models %>%
+#     mutate(extradata = map(
+#         gdp_model,
+#         ~ broom::augment(.x,
+#             newdata = futuredata
+#         )
+#     )) %>%
+#     unnest(extradata) %>%
+#     mutate(gdp_real = 10 ^ (.fitted)) %>%
+#     mutate(period2 = cut(date, breaks = date_cuts)) %>%
+#     filter(period == period2) %>%
+#     left_join(gdp_data, by = c("date", "period")) %>%
+#     mutate(model_diff = value - gdp_real) %>%
+#     drop_na() %>%
+#     ggplot() +
+#     aes(x = date, y = model_diff, color = period) +
+#     geom_line(show.legend = FALSE)
 
-models %>%
+gdp_model_graph <-
+    models %>%
     mutate(extradata = map(
         gdp_model,
         ~ broom::augment(.x,
@@ -196,9 +197,10 @@ models %>%
     ) +
     theme(legend.position = "none")
 
-ggsave("dev/gdp_graph.png")
+# ggsave("dev/gdp_graph.png")
 
-models %>%
+diff_gdp_model <-
+    models %>%
     mutate(extradata = map(
         gdp_model,
         ~ broom::augment(.x,
@@ -215,19 +217,26 @@ models %>%
     ggplot() +
     aes(x = date, y = model_diff, color = period) +
     geom_line(show.legend = FALSE, alpha = .3) +
-    geom_label(
-        data = label,
-        aes(
-            x = date + years(4),
-            y = .1,
-            label = growth,
-            fill = factor(date)
-        ),
-        hjust = 0,
-        inherit.aes = FALSE
-    ) +
+    # geom_label(
+    #     data = label,
+    #     aes(
+    #         x = date + years(4),
+    #         y = .1,
+    #         label = growth,
+    #         fill = factor(date)
+    #     ),
+    #     hjust = 0,
+    #     inherit.aes = FALSE
+    # ) +
     scale_y_continuous(labels = scales::dollar_format(suffix = "B")) +
     theme(legend.position = "none")
 
 
-    ggsave("dev/gdp_div_graph.png", width = 8, height = 4)
+    # ggsave("dev/gdp_div_graph.png", width = 8, height = 4)
+
+
+combined_graph <- 
+    (gdp_model_graph + labs(x = "", y = "GDP (in $B)") +
+    theme(axis.text.x = element_blank())) / (diff_gdp_model + labs(y = "Deviation from model (in $B)"))
+
+ggsave("graphs/real_gdp_modeled.png", width = 8, height = 8, plot = combined_graph)
