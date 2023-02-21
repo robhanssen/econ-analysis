@@ -114,7 +114,7 @@ real_growth_per <- scales::percent((-gdp_max_pred + gdp_max_real) / gdp_max_real
 
 max_date <- max(gdp$date)
 comment <- paste0(
-    "Difference between Obama model\nand outcome : ",
+    "Difference between 2010s model\nand outcome : ",
     real_growth,
     " (", real_growth_per, ")"
 )
@@ -194,7 +194,7 @@ max_dip <- min(predictions_diff$real_growth)
 dip_comment <- paste0(
     "COVID-19 GDP dip\n",
     scales::dollar(-max_dip, accuracy = 1, suffix = "B"),
-    " below Obama model"
+    " below 2010s model"
 )
 
 gdp_diff_scale <-
@@ -233,7 +233,7 @@ gdp_diff_scale <-
     ) +
     labs(
         x = "Date",
-        y = "GDP growth above Obama model (in $B)",
+        y = "GDP growth above 2010s model (in $B)",
         caption = "Model trained between 2009 and 2017 and predicted into 2021"
     )
 
@@ -290,7 +290,7 @@ predict_post_2020 <-
 model_contant_inc <- 10 ^ (365 * (modelconstant - model_constant_pre2020)) - 1
 model_contant_comment <- paste0(
     "Estimate inflation: ", scales::percent(model_contant_inc, accuracy = .1),
-    " over Obama model"
+    " over 2010s model"
 )
 
 
