@@ -1,7 +1,9 @@
 # presidents age in office
 
 library(tidyverse)
+library(lubridate)
 library(rvest)
+theme_set(theme_light() + theme(legend.position = "none"))
 
 url <- "https://en.wikipedia.org/wiki/List_of_presidents_of_the_United_States"
 
@@ -50,10 +52,13 @@ presidents <-
         current_age = ifelse(!is.na(age), NA,
             (lubridate::today() - birth) / dyears(1)
         )
-    )
+    ) %>%
+    group_by(name) %>%
+    mutate(youngest_age_in_office = min(age_in_office)) %>%
+    ungroup()
 
 presidents %>%
-    mutate(name = fct_reorder(name, age_in_office)) %>%
+    mutate(name = fct_reorder(name, youngest_age_in_office)) %>%
     ggplot() +
     aes(y = name) +
     geom_point(aes(x = age_in_office, color = alive), size = 3) +
@@ -75,8 +80,8 @@ presidents %>%
         xintercept = mean(presidents$age_out_office, na.rm = TRUE),
         lty = 3
     ) +
+    scale_x_continuous(breaks = seq(0, 100, 10), limits = c(35, NA)) +
     scale_color_manual(values = c("TRUE" = "darkgreen", "FALSE" = "gray70")) +
-    labs(x = "Age", y = "") +
-    theme(legend.position = "none")
+    labs(x = "Age", y = "")
 
 ggsave("elections/president_ages.png", width = 8, height = 6)
