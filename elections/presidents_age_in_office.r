@@ -3,7 +3,14 @@
 library(tidyverse)
 library(lubridate)
 library(rvest)
-theme_set(theme_light() + theme(legend.position = "none"))
+
+theme_set(theme_light() +
+    theme(
+        axis.ticks = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        legend.position = "none"
+    ))
 
 url <- "https://en.wikipedia.org/wiki/List_of_presidents_of_the_United_States"
 
@@ -80,7 +87,13 @@ presidents %>%
         xintercept = mean(presidents$age_out_office, na.rm = TRUE),
         lty = 3
     ) +
-    scale_x_continuous(breaks = seq(0, 100, 10), limits = c(35, NA)) +
+    scale_x_continuous(
+        breaks = seq(0, 100, 10),
+        limits = c(35, NA),
+        sec.axis = sec_axis(~.,
+            breaks = seq(0, 100, 10)
+        )
+    ) +
     scale_color_manual(values = c("TRUE" = "darkgreen", "FALSE" = "gray70")) +
     labs(x = "Age", y = "")
 
