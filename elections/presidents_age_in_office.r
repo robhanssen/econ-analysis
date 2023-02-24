@@ -68,8 +68,6 @@ presidents %>%
     mutate(name = fct_reorder(name, youngest_age_in_office)) %>%
     ggplot() +
     aes(y = name) +
-    geom_point(aes(x = age_in_office, color = alive), size = 3) +
-    geom_point(aes(x = age_out_office, color = alive), size = 3) +
     geom_point(aes(x = current_age, color = alive), shape = 5, size = 3) +
     geom_segment(aes(
         yend = name,
