@@ -64,7 +64,8 @@ presidents <-
     mutate(youngest_age_in_office = min(age_in_office)) %>%
     ungroup()
 
-presidents %>%
+prez_plot <-
+    presidents %>%
     mutate(name = fct_reorder(name, youngest_age_in_office)) %>%
     ggplot() +
     aes(y = name) +
@@ -77,14 +78,14 @@ presidents %>%
     ),
     size = 3
     ) +
-    geom_vline(
-        xintercept = mean(presidents$age_in_office),
-        lty = 3
-    ) +
-    geom_vline(
-        xintercept = mean(presidents$age_out_office, na.rm = TRUE),
-        lty = 3
-    ) +
+    # geom_vline(
+    #     xintercept = mean(presidents$age_in_office),
+    #     lty = 3
+    # ) +
+    # geom_vline(
+    #     xintercept = mean(presidents$age_out_office, na.rm = TRUE),
+    #     lty = 3
+    # ) +
     scale_x_continuous(
         breaks = seq(0, 100, 10),
         limits = c(35, NA),
@@ -95,4 +96,44 @@ presidents %>%
     scale_color_manual(values = c("TRUE" = "darkgreen", "FALSE" = "gray70")) +
     labs(x = "Age", y = "")
 
-ggsave("elections/president_ages.png", width = 8, height = 6)
+ggsave("elections/president_ages.png", width = 8, height = 6, 
+    plot = prez_plot)
+
+#
+# distribution
+#
+
+pdf_lognorm <- function(x, mu, sig) {
+    .5 * (1 + pracma::erf((log(x) - mu) / (sqrt(2) * sig)))
+}
+
+logmean_age <- mean(log(presidents$age_in_office))
+logsd_age <- sd(log(presidents$age_in_office))
+
+age_cdf <-
+    tibble(
+        ages = seq(35, 85, 3),
+        cdf = map_dbl(ages, ~ nrow(presidents %>% filter(age_in_office < .x))) / nrow(presidents), # nolint
+        cdf_simul_log = map_dbl(ages, ~ pdf_lognorm(.x, logmean_age, logsd_age)) # nolint
+    )
+
+lognormal_plot <-
+    age_cdf %>%
+    ggplot() +
+    aes(x = ages) +
+    geom_point(aes(y = cdf), alpha = .3) +
+    geom_line(aes(y = cdf_simul_log), alpha = .2) +
+    geom_vline(xintercept = exp(logmean_age), alpha = .2) +
+    labs(x = "", y = "", title = "Tenure log-normal CDF") +
+    theme(
+        plot.background = element_blank(),
+        plot.title = element_text(size = 8, hjust = .5),
+        axis.text = element_text(size = 6)
+    )
+
+prez_plot_cdf <- prez_plot + 
+     inset_element(lognormal_plot, .0, .6, .3, .95)
+
+
+ggsave("elections/president_ages_cdf.png", width = 8, height = 6, 
+    plot = prez_plot_cdf)
