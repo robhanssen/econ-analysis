@@ -132,7 +132,7 @@ lognormal_plot <-
     )
 
 prez_plot_cdf <- prez_plot + 
-     inset_element(lognormal_plot, .0, .6, .3, .95)
+     patchwork::inset_element(lognormal_plot, .0, .6, .3, .95)
 
 
 ggsave("elections/president_ages_cdf.png", width = 8, height = 6, 
