@@ -18,8 +18,10 @@ sigma_width <- 6
 q0 <- pnorm(sigma_width / 2)
 
 annot <-
-    glue::glue("{sigma_width}\U03C3 based on period\n",
-               "full-year {min(base_years)}-{max(base_years)}")
+    glue::glue(
+        "{sigma_width}\U03C3 based on period\n",
+        "full-year {min(base_years)}-{max(base_years)}"
+    )
 
 quants_average <-
     with(
@@ -60,11 +62,12 @@ claimsplot <-
         hjust = 0, color = "gray50", alpha = .8,
         size = 3
     ) +
-    geom_segment(aes(
-        x = cutoff_date, xend = cutoff_date,
-        y = min(quants_average) + 10000, yend = max(quants_average) - 10000
-    ),
-    color = "gray85", alpha = .3, size = 1,
+    geom_segment(
+        aes(
+            x = cutoff_date, xend = cutoff_date,
+            y = min(quants_average) + 10000, yend = max(quants_average) - 10000
+        ),
+        color = "gray85", alpha = .3, size = 1,
     ) +
     geom_line(
         aes(y = zoo::rollmean(claims, 26, na.pad = TRUE, align = "center")),
@@ -79,8 +82,10 @@ claimsplot <-
     )
 
 normal_label <-
-    glue::glue("Normality based on period\n",
-               "full-year {min(base_years)}-{max(base_years)}")
+    glue::glue(
+        "Normality based on period\n",
+        "full-year {min(base_years)}-{max(base_years)}"
+    )
 
 qqinset <-
     initialclaims %>%
@@ -102,6 +107,33 @@ qqinset <-
         plot.background = element_rect(fill = "transparent")
     )
 
-p <- claimsplot + inset_element(qqinset, .01, .6, .3, .99)
+# p <- claimsplot + inset_element(qqinset, .01, .6, .3, .99)
+
+# ggsave("graphs/initial_unemp_claims.png", width = 8, height = 5, plot = p)
+
+# modeling 12 weeks of data
+data_12weeks <-
+    initialclaims %>%
+    slice_max(date, n = 12)
+
+linmod_12weeks <-
+    initialclaims %>%
+    slice_max(date, n = 12) %>%
+    lm(claims ~ date, data = .) %>%
+    broom::augment(newdata = tibble(
+        date = seq(min(data_12weeks$date),
+            max(data_12weeks$date) + weeks(6),
+            by = "1 week"
+        )
+    ))
+
+p <-
+    claimsplot +
+    geom_line(
+        data = linmod_12weeks,
+        aes(x = date, y = .fitted),
+        color = "gray50", alpha = .5
+    ) +
+    inset_element(qqinset, .01, .6, .3, .99)
 
 ggsave("graphs/initial_unemp_claims.png", width = 8, height = 5, plot = p)
