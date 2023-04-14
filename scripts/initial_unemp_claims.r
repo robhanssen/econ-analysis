@@ -32,6 +32,10 @@ quants_average <-
         )
     )
 
+
+max_date <- max(initialclaims$date) %>% format(., format = "%b %d, %Y")
+
+
 claimsplot <-
     initialclaims %>%
     filter(date >= cutoff_date) %>%
@@ -54,7 +58,9 @@ claimsplot <-
     labs(
         x = "", y = "",
         title = "Weekly initial unemployment claims",
-        caption = "Source: FRED St. Louis ICSA data\nLine shows 26-week rolling average" # nolint
+        caption = glue::glue("Source: FRED St. Louis ICSA data",
+                            "\nLine shows 26-week rolling average",
+                            "\nLatest date :{max_date}")
     ) +
     annotate("text",
         x = cutoff_date + months(1),
