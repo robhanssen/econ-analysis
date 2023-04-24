@@ -76,7 +76,7 @@ prez_plot <-
         xend = end_bar,
         color = alive
     ),
-    size = 3
+    linewidth = 3
     ) +
     # geom_vline(
     #     xintercept = mean(presidents$age_in_office),
@@ -124,7 +124,7 @@ lognormal_plot <-
     geom_point(aes(y = cdf), alpha = .3) +
     geom_line(aes(y = cdf_simul_log), alpha = .2) +
     geom_vline(xintercept = exp(logmean_age), alpha = .2) +
-    labs(x = "", y = "", title = "Tenure log-normal CDF") +
+    labs(x = "", y = "", title = "Age log-normal CDF") +
     theme(
         plot.background = element_blank(),
         plot.title = element_text(size = 8, hjust = .5),
