@@ -340,7 +340,7 @@ gdp %>%
     scale_x_date(date_breaks = "4 years", date_labels = "%Y") +
     scale_y_continuous(labels = scales::label_percent()) +
     geom_vline(xintercept = inaugdates, lty = 2, alpha = .3) +
-    geom_hline(yintercept = 0, lty = 1, alpha = .3, size = 1)
+    geom_hline(yintercept = 0, lty = 1, alpha = .3, linewidth = 1)
 
 full_join(presidentinfo, gdp, by = c("inaugdate" = "date")) %>%
     rename(date = inaugdate) %>%
@@ -361,5 +361,5 @@ full_join(presidentinfo, gdp, by = c("inaugdate" = "date")) %>%
     scale_x_date(date_breaks = "4 years", date_labels = "%Y") +
     scale_y_continuous(labels = scales::label_percent()) +
     geom_vline(xintercept = inaugdates, lty = 2, alpha = .3) +
-    geom_hline(yintercept = 0, lty = 1, alpha = .3, size = 1) +
+    geom_hline(yintercept = 0, lty = 1, alpha = .3, linewidth = 1) +
     scale_color_manual(values = partycolor)
