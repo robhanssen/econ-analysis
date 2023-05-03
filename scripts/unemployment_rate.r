@@ -55,7 +55,7 @@ fittedmodels <-
     mutate(date = as.Date(pstart + time * dmonths(1))) %>%
     ggplot() +
     aes(date, .fitted, color = name) +
-    geom_line(size = 1) +
+    geom_line(linewidth = 1) +
     geom_point(data = unrate, aes(x = date, y = value), alpha = .3) +
     scale_y_continuous(
         breaks = seq(0, 20, 2),

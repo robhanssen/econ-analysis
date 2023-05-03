@@ -1,19 +1,21 @@
-options("getSymbols.warning4.0"=FALSE)
+options("getSymbols.warning4.0" = FALSE)
 
 
 get_index <- function(index = "GDP", src = "FRED") {
     t <- quantmod::getSymbols(index, src = src, auto.assign = FALSE)
-    tibble::tibble(date = zoo::index(t),
-           index = index,
-           value = as.numeric(t))
+    tibble::tibble(
+        date = zoo::index(t),
+        index = index,
+        value = as.numeric(t)
+    )
 }
 
 retrieve_data <- function(indexes = c("GDP", "GDPC1"), src = "FRED") {
-    purrr::map_df(indexes, ~get_index(.x, src))
+    purrr::map_df(indexes, ~ get_index(.x, src))
 }
 
 presidentinfo <-
-    read_csv("sources/presidents.csv") %>%
+    read_csv("sources/presidents.csv", col_types = "cDc") %>%
     mutate(
         party = factor(party, levels = c("R", "D"))
     ) %>%

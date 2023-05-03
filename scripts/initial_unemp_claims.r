@@ -44,7 +44,7 @@ claimsplot <-
     geom_point(color = "gray30", alpha = .5, size = .6) +
     geom_hline(
         yintercept = quants_average,
-        size = 2, alpha = .3, color = "gray50"
+        linewidth = 2, alpha = .3, color = "gray50"
     ) +
     scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
     scale_y_continuous(
@@ -73,11 +73,11 @@ claimsplot <-
             x = cutoff_date, xend = cutoff_date,
             y = min(quants_average) + 10000, yend = max(quants_average) - 10000
         ),
-        color = "gray85", alpha = .3, size = 1,
+        color = "gray85", alpha = .3, linewidth = 1,
     ) +
     geom_line(
         aes(y = zoo::rollmean(claims, 26, na.pad = TRUE, align = "center")),
-        color = "gray50", alpha = .2, size = 3
+        color = "gray50", alpha = .2, linewidth = 3
     ) +
     theme(
         axis.ticks = element_blank(),

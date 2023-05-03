@@ -59,7 +59,7 @@ currency_graph <- function(curr = usd, datadf = dolexch, wght = curr_vec, from_d
 
     universalcoin <-
         map_dfc(coins, ~ tibble(.x, wght[.x] * univexch[, .x])) %>%
-        select(coins) %>%
+        select(all_of(coins)) %>%
         bind_cols(date = datadf$date) %>%
         pivot_longer(-date) %>%
         group_by(date) %>%

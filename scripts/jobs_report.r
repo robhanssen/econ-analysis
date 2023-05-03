@@ -41,7 +41,7 @@ cpt <- glue::glue("Last updated on ", format(last_date, format = "%b %d, %Y"))
 pjobs %>%
     ggplot() +
     aes(mo, gr, color = party, group = prezpd) +
-    geom_line(show.legend = FALSE, size = 1) +
+    geom_line(show.legend = FALSE, linewidth = 1) +
     scale_x_continuous(limit = c(0, 120)) +
     scale_y_continuous(labels = scales::number_format(
         scale = 1e-6,
