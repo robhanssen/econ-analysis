@@ -149,3 +149,90 @@ maxes <-
     )
 
 ggsave("graphs/labor-participation.png", width = 12, height = 6)
+
+#
+# post-COVID19 job recovery modeling
+#
+
+last6months <- jobs %>%
+    slice_max(date, n = 6)
+
+sixmonth_pred <-
+    last6months %>%
+    lm(value ~ date, data = .) %>%
+    broom::augment(newdata = tibble(
+        date = seq(min(last6months$date) %m-% months(6),
+            max(last6months$date) %m+% months(6),
+            by = "1 month"
+        )
+    ))
+
+start_date <- ymd(20120101)
+end_date <- ymd(20191201)
+
+fitted_jobs <- jobs %>%
+    filter(date > start_date, date < end_date) %>%
+    lm(value ~ date, data = .) %>%
+    broom::augment(newdata = tibble(
+        date = seq(start_date, today(), by = "1 month")
+    ))
+
+missing_jobs <-
+    inner_join(fitted_jobs, last6months) %>%
+    mutate(diff = .fitted - value) %>%
+    select(date, diff, value, .fitted) %>%
+    summarize(
+        date = median(date),
+        across(diff:.fitted, mean)
+    ) %>%
+    mutate(
+        x = date,
+        y = min(value, .fitted) + diff / 2,
+        label = paste0(round(diff / 1e6, 2), " M")
+    )
+
+recov_plot <-
+    ggplot(data = fitted_jobs) +
+    geom_text(
+        data = missing_jobs,
+        size = 2,
+        aes(x = x, y = y,
+            label = glue::glue("{label} jobs\nare \"missing\""))
+    ) +
+    geom_line(aes(x = date, y = .fitted),
+        linewidth = 1, alpha = .3,
+        color = "gray50"
+    ) +
+    geom_line(aes(x = date, y = .fitted),
+        data = sixmonth_pred,
+        linewidth = 1, alpha = .3,
+        color = "gray50"
+    ) +
+    geom_point(aes(x = date, y = value),
+        data = jobs %>% filter(date > start_date),
+        size = .5, shape = 1, alpha = .3
+    ) +
+    geom_point(aes(x = date, y = value),
+        data = last6months,
+        size = .5, alpha = .3,
+        color = "black"
+    ) +
+    scale_y_continuous(labels = scales::label_number(
+        scale = 1e-6,
+        suffix = " M"
+    )) +
+    labs(
+        title = "Post-COVID19 job recovery compared to 2012-2019 job growth",
+        x = "", y = "Number of jobs (non-farm)",
+        caption = "Source: FRED PAYEMS"
+    ) +
+    theme(
+        plot.title.position = "plot",
+        plot.caption.position = "plot",
+        plot.caption = element_text(hjust = 0),
+    )
+
+ggsave("graphs/jobs_recovery.png",
+    width = 6, height = 4,
+    plot = recov_plot
+)
