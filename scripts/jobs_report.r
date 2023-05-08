@@ -169,6 +169,7 @@ sixmonth_pred <-
 
 start_date <- ymd(20120101)
 end_date <- ymd(20191201)
+plot_start_date <- ymd(20140101)
 
 fitted_jobs <- jobs %>%
     filter(date > start_date, date < end_date) %>%
@@ -227,6 +228,7 @@ recov_plot <-
         x = "", y = "Number of jobs (non-farm)",
         caption = "Source: FRED PAYEMS"
     ) +
+    coord_cartesian(xlim = c(plot_start_date, NA)) +
     theme(
         plot.title.position = "plot",
         plot.caption.position = "plot",
