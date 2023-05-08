@@ -214,13 +214,14 @@ recov_plot <-
     ) +
     geom_point(aes(x = date, y = value),
         data = last6months,
-        size = .5, alpha = .3,
+        size = .5, alpha = 1,
         color = "black"
     ) +
     scale_y_continuous(labels = scales::label_number(
         scale = 1e-6,
         suffix = " M"
     )) +
+    scale_x_date(date_label = "%Y", date_breaks = "2 year") +
     labs(
         title = "Post-COVID19 job recovery compared to 2012-2019 job growth",
         x = "", y = "Number of jobs (non-farm)",
@@ -229,6 +230,7 @@ recov_plot <-
     theme(
         plot.title.position = "plot",
         plot.caption.position = "plot",
+        panel.grid.minor = element_blank(),
         plot.caption = element_text(hjust = 0),
     )
 
