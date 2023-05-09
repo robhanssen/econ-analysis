@@ -4,10 +4,10 @@ theme_set(theme_light())
 
 source("functions.r")
 
-inflation <- get_index("CPIAUCSL") %>%
+inflation <- retrieve_data(c("CPIAUCSL","CPILFESL")) %>%
     arrange(date) %>%
     mutate(month = month(date)) %>%
-    group_by(month) %>%
+    group_by(month, index) %>%
     mutate(annual_inflation = value / lag(value) - 1) %>%
     ungroup()
 
@@ -19,7 +19,7 @@ inflate_label <-
     slice_max(date, n = 1) %>%
     mutate(
         inflation = scales::percent(annual_inflation, accuracy = .1),
-        label = glue::glue(format(date, format = "%b %Y"), "\n{inflation}")
+        label = paste0(format(date, format = "%b %Y"), "\n", index, "\n", inflation)
     )
 
 cutoff_date <- ymd(20100101)
@@ -27,7 +27,7 @@ cutoff_date <- ymd(20100101)
 inflation %>%
     filter(date >= cutoff_date) %>%
     ggplot() +
-    aes(date, annual_inflation) +
+    aes(date, annual_inflation, group = index, linetype = index) +
     geom_line() +
     scale_y_continuous(
         labels = scales::percent_format(),
@@ -69,7 +69,11 @@ inflation %>%
     ) +
     geom_line(
         data = fedrate %>% filter(date >= cutoff_date),
-        aes(x = date, y = value / 100), color = "gray70"
+        aes(x = date, y = value / 100), color = "gray70",
+        linetype = "solid"
+    ) + 
+    theme(
+        legend.position = "none"
     )
 
 ggsave("graphs/us_inflation.png", width = 8, height = 6)
