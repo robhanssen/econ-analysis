@@ -12,9 +12,9 @@ initialclaims <- get_index("ICSA") %>%
     select(-index)
 
 cutoff_date <- ymd(20140101)
-base_years <- c(2016, 2017, 2018, 2019)
+base_years <- c(2017, 2018, 2019)
 
-sigma_width <- 6
+sigma_width <- 4
 q0 <- pnorm(sigma_width / 2)
 
 annot <-
@@ -39,9 +39,11 @@ max_date <- max(initialclaims$date) %>% format(., format = "%b %d, %Y")
 claimsplot <-
     initialclaims %>%
     filter(date >= cutoff_date) %>%
+    mutate(over_4sigma = claims > quants_average[1] & date > ymd(20200101)) %>%
     ggplot() +
-    aes(date, claims) +
-    geom_point(color = "gray30", alpha = .5, size = .6) +
+    aes(date, claims, color = over_4sigma) +
+    scale_color_manual(values = c("FALSE" = "gray30", "TRUE" = "red")) +
+    geom_point(alpha = .5, size = .6, show.legend = FALSE) +
     geom_hline(
         yintercept = quants_average,
         linewidth = 2, alpha = .3, color = "gray50"
@@ -113,10 +115,6 @@ qqinset <-
         plot.background = element_rect(fill = "transparent")
     )
 
-# p <- claimsplot + inset_element(qqinset, .01, .6, .3, .99)
-
-# ggsave("graphs/initial_unemp_claims.png", width = 8, height = 5, plot = p)
-
 # modeling 12 weeks of data
 data_12weeks <-
     initialclaims %>%
@@ -139,7 +137,6 @@ p <-
         data = linmod_12weeks,
         aes(x = date, y = .fitted),
         color = "gray50", alpha = .5
-    ) +
-    inset_element(qqinset, .01, .6, .3, .99)
+    )
 
 ggsave("graphs/initial_unemp_claims.png", width = 8, height = 5, plot = p)
