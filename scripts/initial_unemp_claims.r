@@ -39,7 +39,7 @@ max_date <- max(initialclaims$date) %>% format(., format = "%b %d, %Y")
 claimsplot <-
     initialclaims %>%
     filter(date >= cutoff_date) %>%
-    mutate(over_4sigma = claims > quants_average[1] & date > ymd(20200101)) %>%
+    mutate(over_4sigma = claims > quants_average[1] & date > ymd(20220101)) %>%
     ggplot() +
     aes(date, claims, color = over_4sigma) +
     scale_color_manual(values = c("FALSE" = "gray30", "TRUE" = "red")) +
