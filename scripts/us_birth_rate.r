@@ -1,7 +1,8 @@
 library(tidyverse)
 library(lubridate)
 theme_set(theme_light() +
-    theme(plot.title.position = "plot"))
+    theme(plot.title.position = "plot",
+          panel.grid.minor.x = element_blank()))
 
 source("functions.r")
 
@@ -66,8 +67,14 @@ note <-
 birthrate_g <-
     birthrate %>%
     ggplot(aes(x = date, y = birthrate)) +
+    geom_downarrow +
+    geom_downarrow2 +
+    note +
     geom_point(shape = 1) +
     scale_y_continuous(breaks = seq(0, 25, 2), limits = c(0, NA)) +
+    scale_x_date(
+            breaks = seq(ymd(19900101), today(), by = "5 years"),
+            date_label = "%Y", limits = ymd(19900101, NA)) +
     coord_cartesian(ylim = c(0, 19)) +
     geom_line(
         data = birthrate_model,
@@ -90,9 +97,6 @@ birthrate_g <-
         alpha = .1,
         fill = "gray10"
     ) +
-    geom_downarrow +
-    geom_downarrow2 +
-    note +
     annotate("text",
         y = 1, x = mean(recession_2008$x),
         label = "2008 Great Recession", angle = 90, hjust = 0
