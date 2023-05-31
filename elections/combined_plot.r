@@ -12,7 +12,7 @@ p1 <-
 p2 <-
     sen_plot +
     labs(title = "Senate") +
-        geom_vline(
+    geom_vline(
         xintercept = 39, color = "gray60",
         alpha = .1, linewidth = 3
     ) +
@@ -30,13 +30,14 @@ p_combined <-
                 "until today.\nAs of ",
                 format(today(), format = "%B %d, %Y")
             ),
-        title = "Are you older than a Congressperson?"
-    ) +
-    theme(
-        plot.caption = element_text(hjust = 0),
-        plot.title = element_text(hjust = .5),
-        plot.caption.position = "plot"
+        title = "Are you older than a Congressperson?",
+        theme = theme(
+            plot.caption = element_text(hjust = 0),
+            plot.title = element_text(hjust = .5),
+            plot.caption.position = "plot"
+        )
     )
+
 
 ggsave("elections/both.png",
     width = 12, height = 12,
