@@ -1,6 +1,7 @@
 # combined_plot
 library(patchwork)
 
+source("elections/presidents_age_in_office.r")
 source("elections/house_age_in_office.r")
 source("elections/senators_age_in_office.r")
 

@@ -19,7 +19,7 @@ data_raw <- url %>%
     html_node(xpath = '//*[@id="mw-content-text"]/div[1]/table[6]') %>%
     html_table(fill = TRUE) %>%
     janitor::clean_names() %>%
-    select(district, member, party_2, born_2, assumed_office)
+    select(district, member, party_2, born_2 = born_3, assumed_office)
 
 data_cleaned <-
     data_raw %>%
@@ -43,7 +43,8 @@ members <-
         age_in_office = (assumed_office - born) / lubridate::dyears(1),
         time_in_office = (today() - assumed_office) / lubridate::dyears(1),
         state_abb = state.abb[state == state]
-    )
+    ) %>%
+    drop_na(age)
 
 mem_plot <-
     members %>%
