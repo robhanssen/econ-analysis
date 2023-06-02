@@ -39,7 +39,7 @@ senators <-
         age = (today() - born) / lubridate::dyears(1),
         age_in_office = (assumed_office - born) / lubridate::dyears(1),
         time_in_office = (today() - assumed_office) / lubridate::dyears(1),
-        state_abb = state.abb[state == state]
+        # state_abb = state.abb[which(state.name == data_cleaned$state)]
     )
 
 sen_plot <-
@@ -130,3 +130,37 @@ ggsave("elections/senator_time_in_office.png",
     width = 6, height = 12,
     plot = time_sen_plot
 )
+
+load("elections/governors.RData")
+
+# senators %>%
+#     inner_join(governors, by = "state") %>%
+#     filter(party.x != party.y) %>%
+#     select(state, senator, governor, party.x, party.y, age.x) %>%
+#     mutate(
+#         senator = glue::glue("{senator} ({party.x})"),
+#         governor = glue::glue("{governor} ({party.y})")
+#     ) %>%
+#     select(-starts_with("party")) %>%
+#     arrange(-age.x) %>%
+#     mutate(age.x = floor(age.x)) %>%
+#     knitr::kable()
+
+
+senators %>%
+    mutate(party = case_when(
+        senator == "Bernie Sanders" ~ "Democratic",
+        senator == "Angus King" ~ "Democratic",
+        TRUE ~ party
+    )) %>%
+    inner_join(governors, by = "state") %>%
+    filter(party.x != party.y) %>%
+    mutate(age_decade = 10 * age.x %/% 10) %>%
+    group_by(age_decade, party.x) %>%
+    summarize(n = n(), .groups = "drop") %>%
+    arrange(-age_decade) %>%
+    pivot_wider(names_from = party.x, values_from = n, values_fill = 0) %>%
+    knitr::kable(caption = glue::glue(
+        "Affiliation of senators by age bracket",
+        "in states with governors of other affiliation"
+    ))
