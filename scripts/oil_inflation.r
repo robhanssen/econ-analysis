@@ -76,4 +76,4 @@ oil_data %>%
     scale_y_continuous(labels = scales::dollar_format()) +
     labs(x = "", y = "Oil price (West Texas Crude)")
 
-ggsave("dev/oilprice_comparison.png", width = 8, height = 5)
+ggsave("graphs/oilprice_comparison.png", width = 8, height = 5)
