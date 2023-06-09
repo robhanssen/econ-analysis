@@ -53,6 +53,8 @@ oil_fit <- oil_data %>%
 
 oil_data %>%
     ggplot(aes(x = date, y = DCOILWTICO)) +
+    geom_vline(xintercept = presidentinfo$inaugdate, 
+        color = "gray70", alpha = .1, linewidth = 2) +
     geom_point(shape = 1, alpha = .1, size = .3) +
     geom_line(data = fair_price, aes(y = fair_price)) +
     geom_line(data = oil_fit, aes(y = .upper), alpha = .8, color = "gray40") +
@@ -60,7 +62,7 @@ oil_data %>%
     geom_line(data = oil_fit, aes(y = .fitted), lty = 2) +
     annotate("text",
         x = ymd(20110101), y = 25,
-        hjust = 0, label = "Oil price\nadjusted by inflation"
+        hjust = 0, label = "Oil price model\nadjusted by inflation"
     ) +
     annotate("text",
         x = ymd(20110101), y = 125,
