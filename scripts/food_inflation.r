@@ -58,8 +58,8 @@ plot_foodhome <-
         width = .005,
         color = "gray70",
         aes(
-            xmin = first(avg_index$x), xmax = last(avg_index$x),
-            y = first(avg_index$y)
+            xmin = first(x), xmax = last(x),
+            y = first(y)
         )
     ) +
     annotate("text",
