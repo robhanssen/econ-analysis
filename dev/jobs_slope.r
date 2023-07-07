@@ -41,7 +41,7 @@ cpt <- glue::glue("Last updated on ", format(last_date, format = "%b %d, %Y"))
 pd_df <-
     bind_rows(
         crossing(president = "Ronald Reagan", mo = 75:95),
-        crossing(president = "Bill Clinton", mo = 50:75),
+        crossing(president = "Bill Clinton", mo = 40:80),
         crossing(president = "Barack Obama", mo = 50:95),
         crossing(president = "George H. W. Bush", mo = 1:13),
         crossing(president = "George W. Bush", mo = 45:65),
@@ -133,5 +133,9 @@ g2 <-
 
 ggsave("dev/jobs_growth.png",
     width = 12, height = 6,
-    plot = g2 + g1 +  plot_layout(widths = c(2, 1))
+    plot = g2 + g1 +
+        plot_layout(widths = c(2, 1)) +
+        plot_annotation(
+            title = "Monthly job growth in stable growing periods by president"
+        )
 )
