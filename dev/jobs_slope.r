@@ -20,7 +20,7 @@ jobs <- retrieve_data("PAYEMS", "FRED") %>%
     mutate(prezpd = cut(date, breaks = inaugdates))
 
 pjobs <- jobs %>%
-    filter(date > ymd(19810120)) %>%
+    filter(date > ymd(19801231)) %>%
     group_by(prezpd) %>%
     mutate(y = 1, mo = cumsum(y), gr = cumsum(growth_month)) %>%
     ungroup() %>%
@@ -38,6 +38,13 @@ labs <- pjobs %>%
 last_date <- max(pjobs$date)
 cpt <- glue::glue("Last updated on ", format(last_date, format = "%b %d, %Y"))
 
+last_pres_time <-
+    pjobs %>%
+    filter(president == last(president)) %>%
+    tail(8) %>%
+    pull(mo)
+
+
 pd_df <-
     bind_rows(
         crossing(president = "Ronald Reagan", mo = 75:95),
@@ -46,7 +53,7 @@ pd_df <-
         crossing(president = "George H. W. Bush", mo = 1:13),
         crossing(president = "George W. Bush", mo = 45:65),
         crossing(president = "Donald Trump", mo = 1:25),
-        crossing(president = "Joe Biden", mo = 22:29)
+        crossing(president = "Joe Biden", mo = last_pres_time)
     )
 
 
@@ -139,3 +146,62 @@ ggsave("dev/jobs_growth.png",
             title = "Monthly job growth in stable growing periods by president"
         )
 )
+
+
+population <-
+    get_index("POPTOTUSA647NWDB") %>% 
+    rename(population = value) %>%
+    select(-index)
+
+pjobs2 <- 
+    left_join(pjobs, population, by = "date") %>%
+    fill(population, .direction = "down") %>%
+    mutate(rel_gr = gr / population)
+
+labs2 <- pjobs2 %>%
+    mutate(inaugdate = ymd(paste(prezpd))) %>%
+    group_by(prezpd) %>%
+    slice_max(mo, n = 1) %>%
+    ungroup() %>%
+    select(mo, rel_gr, prezpd, inaugdate) %>%
+    inner_join(presidentinfo) %>%
+    filter(president != "Jimmy Carter")
+
+
+
+
+
+pjobs2  %>%
+    ggplot() +
+    aes(mo, rel_gr, color = party, group = prezpd) +
+    geom_line(show.legend = FALSE, linewidth = .3) +
+    scale_x_continuous(limit = c(0, 120)) +
+    scale_y_continuous(labels = scales::percent_format(
+        # scale = 1e-6,
+        # suffix = "M"
+    )) +
+    scale_color_manual(values = c("R" = "#ff0803", "D" = "#0000ff")) +
+    # geom_line(
+    #     data = preds,
+    #     aes(mo, gr, group = president, color = NULL),
+    #     linetype = 1,
+    #     linewidth = 1.8,
+    #     color = "gray60",
+    #     alpha = .5
+    # ) +
+    geom_label(
+        data = labs2,
+        aes(
+            x = mo + 1,
+            y = rel_gr,
+            label = president,
+            color = NULL,
+            hjust = 0
+        ),
+        show.legend = FALSE
+    ) +
+    labs(
+        x = "Months in office",
+        y = "Cumulative jobs growth",
+        caption = cpt
+    )
