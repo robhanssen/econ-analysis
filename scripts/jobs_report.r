@@ -115,9 +115,10 @@ maxes <-
     ) +
     scale_color_manual(values = c("R" = "#ff0803", "D" = "#0000ff")) +
     labs(
-        x = "Date",
-        y = "Total working population"
-    )
+        x = "",
+        y = "",
+        title = "Total working population"
+    )+ theme(axis.title = element_blank())
 ) +
     (jobspop %>%
         filter(date > ymd(19600101)) %>%
@@ -139,14 +140,19 @@ maxes <-
         ) +
         scale_color_manual(values = c("R" = "#ff0803", "D" = "#0000ff")) +
         labs(
-            x = "Date",
-            y = "Working population as\nfraction of the total population"
-        )
+            x = "",
+            y = "",
+            title = "Working population as fraction of the total population"
+        ) + theme(axis.title = element_blank())
     ) +
     plot_annotation(
         caption =
             "Source: FRED St. Louis, PAYEMS and POPTOTUSA647NWDB"
+    )  & theme(
+            plot.caption = element_text(hjust = 0),
+            plot.title.position = "plot"
     )
+
 
 ggsave("graphs/labor-participation.png", width = 12, height = 6)
 
