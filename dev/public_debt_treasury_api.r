@@ -1,6 +1,5 @@
 library(tidyverse)
 library(patchwork)
-# library(jsonlite)
 
 theme_set(theme_light() +
     theme(
@@ -134,12 +133,6 @@ gdp_extra_g <-
         x = "", y = "Total Public Debt"
     )
 
-ggsave("graphs/public_debt_extrapolation.png",
-    width = 8, height = 5,
-    plot = gdp_extra_g)
-
-
-#
 #
 # adjust for CPI
 #
@@ -221,11 +214,6 @@ infl_adj_g <-
     labs(
         x = "", y = "Total Public Debt",
     )
-
-ggsave("graphs/public_debt_inflation_adj.png",
-    width = 8, height = 5,
-    plot = infl_adj_g)
-
 
 ggsave("graphs/public_debt.png",
     width = 8, height = 10,
