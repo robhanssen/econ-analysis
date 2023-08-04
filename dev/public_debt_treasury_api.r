@@ -222,7 +222,7 @@ ggsave("graphs/public_debt.png",
             title = "Total Public Debt over time",
             caption = glue::glue(
                 "Source: Treasury.gov debt_to_penny API and FRED CPIAUCSL API\n", # nolint
-                "Gray line indicated total public debt adjusted to {infl_base_year} dollars" # nolint
+                "Gray line indicates total public debt adjusted to {infl_base_year} dollars" # nolint
             )
         )
 )
