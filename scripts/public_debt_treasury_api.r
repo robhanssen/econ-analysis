@@ -128,10 +128,10 @@ gdp_extra_g <-
         alpha = .5,
         lty = 3
     ) +
-    geom_vline(xintercept = presidentinfo$inaugdate) +
+    geom_vline(xintercept = presidentinfo$inaugdate, alpha = .5) +
     labs(
         x = "", y = "Total Public Debt"
-    )
+    ) + theme(axis.text.x = element_blank(), axis.ticks.x =  element_blank())
 
 #
 # adjust for CPI
@@ -139,7 +139,7 @@ gdp_extra_g <-
 
 infl <- get_index("CPIAUCSL")
 
-infl_date <- ymd(20050101)
+infl_date <- ymd(20090101)
 
 infl_base_year <- year(infl_date)
 
@@ -213,6 +213,11 @@ infl_adj_g <-
     geom_vline(xintercept = presidentinfo$inaugdate, alpha = .5) +
     labs(
         x = "", y = "Total Public Debt",
+    ) +
+    annotate(
+        "label", x = ymd(20140701), y = 13.5e12,
+        color = "gray50", hjust = 0,
+        label = glue::glue("Inflation-adjusted public\ndebt, in {infl_base_year} dollars") # nolint
     )
 
 ggsave("graphs/public_debt.png",
