@@ -217,11 +217,12 @@ infl_adj_g <-
 
 ggsave("graphs/public_debt.png",
     width = 8, height = 10,
-    plot =  gdp_extra_g / infl_adj_g + 
-        plot_annotation(title = "Total Public Debt over time", 
-        caption = glue::glue(
-            "Source: Treasury.gov debt_to_penny API and FRED CPIAUCSL API\n",
-            "Gray line indicated total public debt adjusted to {infl_base_year} dollars"
+    plot = gdp_extra_g / infl_adj_g +
+        plot_annotation(
+            title = "Total Public Debt over time",
+            caption = glue::glue(
+                "Source: Treasury.gov debt_to_penny API and FRED CPIAUCSL API\n", # nolint
+                "Gray line indicated total public debt adjusted to {infl_base_year} dollars" # nolint
+            )
         )
-        )
-    )
+)
