@@ -71,6 +71,7 @@ jobspop_dat <-
     retrieve_data(indexes = c("PAYEMS", "POPTOTUSA647NWDB"), "FRED") %>%
     pivot_wider(names_from = "index", values_from = "value") %>%
     arrange(date) %>%
+    mutate(POPTOTUSA647NWDB = zoo::na.approx(POPTOTUSA647NWDB, na.rm = FALSE)) %>%
     fill(POPTOTUSA647NWDB, .direction = "down") %>%
     drop_na() %>%
     mutate(PAYEMS = PAYEMS * 1000) %>%
