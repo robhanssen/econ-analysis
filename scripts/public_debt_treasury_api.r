@@ -83,7 +83,7 @@ date_limits_df <-
         "GW Bush", ymd(list(20020107, 20080107)),
         "Obama1", ymd(list(20090107, 20130103)),
         "Obama-Trump", ymd(list(20140107, 20190103)),
-        "Trump-Biden", ymd(list(20200701, 20210721))
+        "Trump-Biden", ymd(list(20200701, 20210121))
     )
 
 lines_data <-
@@ -147,6 +147,7 @@ infl_base <- infl$value[infl$date == infl_date]
 
 infl_corrected <-
     full_join(debt_gdp, infl, by = "date") %>%
+    arrange(date) %>%
     fill(value, .direction = "down") %>%
     mutate(total_public_debt = total_public_debt * infl_base / value)
 
@@ -154,7 +155,7 @@ date_limits_df <-
     tribble(
         ~period, ~date_limits,
         "Obama-Trump", ymd(list(20140107, 20190103)),
-        "Trump-Biden", ymd(list(20200701, 20230703))
+        "Trump-Biden", list(ymd(20200701), today() - weeks(4))
     )
 
 
