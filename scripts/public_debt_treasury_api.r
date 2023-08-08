@@ -36,6 +36,7 @@ gen_line <- function(date_limit, period, data) {
         ) %>%
         mutate(
             period = period,
+            daily = slope,
             annual = slope * 365 * 1e-12,
             std_err = std_err * 365 * 1e-12
         )
@@ -83,7 +84,8 @@ date_limits_df <-
         "GW Bush", ymd(list(20020107, 20080107)),
         "Obama1", ymd(list(20090107, 20130103)),
         "Obama-Trump", ymd(list(20140107, 20190103)),
-        "Trump-Biden", ymd(list(20200701, 20210121))
+        "Trump", ymd(list(20200701, 20210121)),
+        "Biden", list(ymd(20220701), today())
     )
 
 lines_data <-
@@ -151,7 +153,7 @@ infl_corrected <-
     fill(value, .direction = "down") %>%
     mutate(total_public_debt = total_public_debt * infl_base / value)
 
-date_limits_df <-
+date_limits_df_infl <-
     tribble(
         ~period, ~date_limits,
         "Obama-Trump", ymd(list(20140107, 20190103)),
@@ -162,19 +164,19 @@ date_limits_df <-
 
 lines_data_infl <-
     map_df(
-        seq_len(nrow(date_limits_df)),
+        seq_len(nrow(date_limits_df_infl)),
         ~ gen_line(
-            date_limits_df$date_limits[[.x]],
-            date_limits_df$period[[.x]],
+            date_limits_df_infl$date_limits[[.x]],
+            date_limits_df_infl$period[[.x]],
             infl_corrected
         )
     )
 
-dots_data <-
+dots_data_infl <-
     map_df(
-        seq_len(nrow(date_limits_df)),
+        seq_len(nrow(date_limits_df_infl)),
         ~ gen_points(
-            date_limits_df$date_limits[[.x]],
+            date_limits_df_infl$date_limits[[.x]],
             data = infl_corrected
         ),
     )
@@ -197,7 +199,7 @@ infl_adj_g <-
         aes(x = date, y = total_public_debt), color = "gray50"
     ) +
     geom_point(
-        data = dots_data, color = "red",
+        data = dots_data_infl, color = "red",
         size = 2, alpha = .7
     ) +
     geom_line(
