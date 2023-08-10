@@ -43,7 +43,7 @@ inflation %>%
     labs(
         x = "Date",
         y = "Annual inflation (in %)",
-        caption = "Source: FRED CPIAUCSL and DFEDTARU"
+        caption = "Source: FRED CPIAUCSL, PCE and DFEDTARU"
     ) +
     ggrepel::geom_label_repel(
         data = inflate_label,
