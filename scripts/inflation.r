@@ -4,7 +4,7 @@ theme_set(theme_light())
 
 source("functions.r")
 
-inflation <- retrieve_data(c("CPIAUCSL","CPILFESL")) %>%
+inflation <- retrieve_data(c("CPIAUCSL","CPILFESL", "PCE")) %>%
     arrange(date) %>%
     mutate(month = month(date)) %>%
     group_by(month, index) %>%
@@ -15,8 +15,8 @@ fedrate <- get_index("DFEDTARU") %>%
     arrange(date)
 
 inflate_label <-
-    inflation %>%
-    slice_max(date, n = 1) %>%
+    inflation %>% group_by(index) %>%
+    slice_max(date, n = 1) %>% ungroup() %>%
     mutate(
         inflation = scales::percent(annual_inflation, accuracy = .1),
         label = paste0(format(date, format = "%b %Y"), "\n", index, "\n", inflation)
@@ -34,6 +34,7 @@ inflation %>%
         breaks = seq(0, 1, .02),
         expand = c(0, 0)
     ) +
+    coord_cartesian(ylim = c(-.01, .1)) +
     scale_x_date(
         date_breaks = "3 years",
         date_labels = "%Y",
@@ -61,7 +62,7 @@ inflation %>%
         )
     ) +
     annotate("text",
-        x = inflate_label$date,
+        x = max(inflate_label$date),
         y = .008,
         label = "FED\nTARGET\nRATE",
         color = "gray50",
@@ -70,7 +71,8 @@ inflation %>%
     geom_line(
         data = fedrate %>% filter(date >= cutoff_date),
         aes(x = date, y = value / 100), color = "gray70",
-        linetype = "solid"
+        linetype = "solid",
+        alpha = .5
     ) + 
     theme(
         legend.position = "none"
