@@ -1,6 +1,14 @@
 library(tidyverse)
 library(lubridate)
-theme_set(theme_light())
+
+theme_set(theme_light() +
+    theme(
+        plot.title.position = "plot",
+        plot.title = element_text(),
+        panel.grid.minor = element_blank(),
+        plot.caption = element_text(hjust = 0),
+        plot.caption.position = "plot"
+    ))
 
 source("functions.r")
 
