@@ -1,4 +1,4 @@
 library(purrr)
 
-map(list.files(path = "./scripts/", pattern = "*.r", full.names = TRUE),
+walk(list.files(path = "./scripts/", pattern = "*.r", full.names = TRUE),
     source)
