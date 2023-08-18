@@ -22,7 +22,7 @@ savings <-
     pivot_wider(names_from = "index") %>%
     janitor::clean_names() %>%
     arrange(date) %>%
-    mutate(pmsave = pmsave)
+    mutate(pmsave = pmsave / 12) # correction of Seasonable Adjusted Annual Rates to Monthly
 
 lin <-
     savings %>%
@@ -67,10 +67,10 @@ savings_g <-
         color = "gray80", alpha = .8,
         linewidth = 1, lty = "dashed"
     ) +
-    geom_vline(xintercept = c(eqdate), color = "gray70") +
+    # geom_vline(xintercept = c(eqdate), color = "gray70") +
     coord_cartesian(ylim = c(0, NA)) +
     scale_y_continuous(
-        breaks = seq(0, 6000, 1000),
+        breaks = seq(0, 600, 100),
     ) +
     labs(
         x = "", y = "Personal savings rate (in B$)",
@@ -91,10 +91,10 @@ excess_savings_g <-
     ) +
     geom_point() +
     geom_line(alpha = .4) +
-    geom_vline(xintercept = c(eqdate), color = "gray70") +
+    # geom_vline(xintercept = c(eqdate), color = "gray70") +
     coord_cartesian(ylim = c(0, NA)) +
     scale_y_continuous(
-        breaks = seq(0, 24000, 4000),
+        breaks = seq(0, 2400, 400),
     ) +
     labs(
         x = "", y = "Excess savings since Jan 2020 (in B$)",
@@ -166,7 +166,7 @@ savings_g_cpi <-
     # geom_vline(xintercept = c(eqdate), color = "gray70") +
     coord_cartesian(ylim = c(0, NA)) +
     scale_y_continuous(
-        breaks = seq(0, 6000, 1000),
+        breaks = seq(0, 600, 100),
     ) +
     labs(
         x = "", y = "Personal savings rate (in B$)",
@@ -174,7 +174,7 @@ savings_g_cpi <-
     )
 
 excess_savings_g_cpi <-
-    excess_modeled_cpi %>% view()
+    excess_modeled_cpi %>%
     bind_rows(tibble(
         date = seq(ymd(20160101), ymd(20200101), by = "1 month")
     )) %>%
@@ -187,10 +187,10 @@ excess_savings_g_cpi <-
     ) +
     geom_point() +
     geom_line(alpha = .4) +
-    geom_vline(xintercept = c(eqdate), color = "gray70") +
+    # geom_vline(xintercept = c(eqdate), color = "gray70") +
     coord_cartesian(ylim = c(0, NA)) +
     scale_y_continuous(
-        breaks = seq(0, 24000, 4000),
+        breaks = seq(0, 2400, 400),
     ) +
     labs(
         title = "Adjusted for CPI (2020 dollars)",
