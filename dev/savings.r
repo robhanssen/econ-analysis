@@ -83,6 +83,11 @@ excess_savings_g <-
     )) %>%
     arrange(date) %>%
     ggplot(aes(date, cum_excess)) +
+    geom_line(
+        data = lin, aes(date, .fitted),
+        color = "white", alpha = .0,
+        linewidth = .1, lty = "dashed"
+    ) +
     geom_point() +
     geom_line(alpha = .4) +
     geom_vline(xintercept = c(eqdate), color = "gray70") +
