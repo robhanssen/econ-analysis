@@ -5,7 +5,9 @@
 #
 
 library(tidyverse)
+library(patchwork)
 library(lubridate)
+
 theme_set(theme_light() +
     theme(
         plot.caption = element_text(hjust = 0),
@@ -23,7 +25,7 @@ savings <-
 
 lin <-
     savings %>%
-    filter(date %within% (ymd(20160601) %--% ymd(20200101))) %>%
+    filter(date %within% (ymd(20160101) %--% ymd(20191231))) %>%
     lm(pmsave ~ date, data = .) %>%
     broom::augment(
         newdata =
@@ -46,15 +48,16 @@ cumxs <-
     lm(cum_excess ~ date, data = .) %>%
     broom::augment(
         newdata =
-            tibble(date = seq(ymd(20230101), ymd(20300101), by = "1 month"))
+            tibble(date = seq(ymd(20230101), ymd(20250101), by = "1 month"))
     )
 
 eqdate <-
     approx(cumxs$.fitted, cumxs$date, xout = 0)$y %>%
     as.Date(., origin = "1970-01-01")
 
-savings %>%
-    filter(date > ymd(20160101)) %>%
+savings_g <-
+    savings %>%
+    filter(date >= ymd(20160101)) %>%
     ggplot(aes(date, pmsave)) +
     geom_point() +
     geom_line(alpha = .4) +
@@ -63,15 +66,43 @@ savings %>%
         color = "gray80", alpha = .8,
         linewidth = 1, lty = "dashed"
     ) +
+    geom_vline(xintercept = c(eqdate), color = "gray70") +
+    coord_cartesian(ylim = c(0, NA)) +
     scale_y_continuous(
-        limits = c(0, NA),
         breaks = seq(0, 6000, 1000),
     ) +
-    # geom_point(data = excess_modeled, aes(date, cum_excess), color = "gray70") +
-    geom_vline(xintercept = c(eqdate), color = "gray70") +
     labs(
-        x = "", y = "Personal saving rate (in B$)",
+        x = "", y = "Excess savings rate (in B$)",
         caption = "Source: FRED PMSAVE"
     )
 
-ggsave("dev/savings.png", width = 6, height = 4)
+excess_savings_g <-
+    excess_modeled %>%
+    bind_rows(tibble(
+        date = seq(ymd(20160101), ymd(20200101), by = "1 month")
+    )) %>%
+    arrange(date) %>%
+    ggplot(aes(date, cum_excess)) +
+    geom_point() +
+    geom_line(alpha = .4) +
+    geom_vline(xintercept = c(eqdate), color = "gray70") +
+    coord_cartesian(ylim = c(0, NA)) +
+    scale_y_continuous(
+        breaks = seq(0, 24000, 4000),
+    ) +
+    labs(
+        x = "", y = "Excess savings since Jan 2020 (in B$)",
+    )
+
+
+ggsave("dev/savings.png",
+    width = 6, height = 4,
+    plot = savings_g
+)
+
+p <- excess_savings_g / savings_g
+
+ggsave("dev/savings_sum.png",
+    width = 6, height = 4,
+    plot = p
+)
