@@ -1,7 +1,7 @@
 #
-# Original article:
+# Original articles:
 # https://www.frbsf.org/economic-research/publications/economic-letter/2023/may/rise-and-fall-of-pandemic-excess-savings/
-#
+# https://www.frbsf.org/our-district/about/sf-fed-blog/excess-no-more-dwindling-pandemic-savings/
 #
 
 library(tidyverse)
