@@ -94,7 +94,6 @@ excess_savings_g <-
         x = "", y = "Excess savings since Jan 2020 (in B$)",
     )
 
-
 ggsave("dev/savings.png",
     width = 6, height = 4,
     plot = savings_g
