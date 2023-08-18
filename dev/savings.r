@@ -72,7 +72,7 @@ savings_g <-
         breaks = seq(0, 6000, 1000),
     ) +
     labs(
-        x = "", y = "Excess savings rate (in B$)",
+        x = "", y = "Personal savings rate (in B$)",
         caption = "Source: FRED PMSAVE"
     )
 
@@ -107,6 +107,6 @@ ggsave("dev/savings.png",
 p <- excess_savings_g / savings_g
 
 ggsave("dev/savings_sum.png",
-    width = 6, height = 4,
+    width = 6, height = 8,
     plot = p
 )
