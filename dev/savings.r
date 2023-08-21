@@ -232,19 +232,54 @@ savingspop_dat <-
         pm_save_by_person_cpi = pm_save_by_person * cpi_index / cpi
     )
 
-savingspop_dat %>%
+level2020 <- 
+    with(
+        savingspop_dat, 
+        pm_save_by_person_cpi[date == ymd(20200101)]
+    )
+
+savingspop_dat <-
+    savingspop_dat %>%
+    mutate(level2020 = case_when(date < ymd(20200101) ~ NA_real_,
+                    TRUE ~ level2020))
+
+
+savings_cpi_g <-
+    savingspop_dat %>%
     filter(date >= ymd(20160101)) %>%
     ggplot(aes(date)) +
-    geom_line(color = "darkgreen", aes(y = pm_save_by_person_cpi)) +
-    # geom_line(color = "red", aes(y = pm_save_by_person)) +
+    geom_line(color = "gray70", aes(y = pm_save_by_person_cpi)) +
     coord_cartesian(ylim = c(0, NA)) +
     scale_x_date(date_minor_breaks = "1 year") +
     scale_y_continuous(
         labels = scales::dollar_format(),
-        breaks = seq(0, 2000, 200),
+        breaks = seq(0, 8000, 200),
     ) +
     labs(
         x = "", y = "Personal savings rate per person per month (in 2016 $)",
         caption = "Source: FRED PMSAVE, POPTOTUSA647NWDB, CPIAUCSL",
         title = "CPI-adjusted savings per person per month"
     )
+
+line_cpi <-
+    savingspop_dat %>%
+    filter(date %within% (ymd(20160101) %--% ymd(20191231))) %>%
+    lm(pm_save_by_person_cpi ~ date, data = .) %>%
+    broom::augment(newdata = 
+        tibble(date = seq(ymd(20200101), today(), by = "1 month")))
+
+extra_sav <-
+    inner_join(savingspop_dat, line_cpi) %>%
+    arrange(date) %>%
+    filter(date >= ymd(20200101)) %>%
+    mutate(diff_savings = pm_save_by_person_cpi - .fitted,
+            cum_saving = cumsum(diff_savings)) %>%
+    select(date, diff_savings,cum_saving)
+
+savings_cpi_g + 
+    geom_line(data = line_cpi, aes(y = .fitted),
+        lty = 2, color = "gray60") + 
+    geom_line(aes(y = level2020),
+        lty = 2, color = "gray60")
+
+
