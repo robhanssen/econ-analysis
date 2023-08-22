@@ -84,8 +84,8 @@ date_limits_df <-
         "GW Bush", ymd(list(20020107, 20080107)),
         "Obama1", ymd(list(20090107, 20130103)),
         "Obama-Trump", ymd(list(20140107, 20190103)),
-        "Trump", ymd(list(20200701, 20210121)),
-        "Biden", list(ymd(20220701), today())
+        # "Trump", ymd(list(20200701, 20210121)),
+        "Trump-Biden", list(ymd(20200701), today())
     )
 
 lines_data <-
