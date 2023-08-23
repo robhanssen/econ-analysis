@@ -87,7 +87,7 @@ g1 <-
     ) +
     scale_x_continuous(labels = scales::label_number()) +
     labs(
-        x = "Modeled job growth per month", 
+        x = "Modeled job growth per month",
         y = "",
         caption = glue::glue(
             "Errorbars range \U00B1 ",
@@ -149,11 +149,11 @@ ggsave("dev/jobs_growth.png",
 
 
 population <-
-    get_index("POPTOTUSA647NWDB") %>% 
+    get_index("POPTOTUSA647NWDB") %>%
     rename(population = value) %>%
     select(-index)
 
-pjobs2 <- 
+pjobs2 <-
     left_join(pjobs, population, by = "date") %>%
     fill(population, .direction = "down") %>%
     mutate(rel_gr = gr / population)
@@ -167,28 +167,14 @@ labs2 <- pjobs2 %>%
     inner_join(presidentinfo) %>%
     filter(president != "Jimmy Carter")
 
-
-
-
-
-pjobs2  %>%
+pjobs2 %>%
     ggplot() +
     aes(mo, rel_gr, color = party, group = prezpd) +
     geom_line(show.legend = FALSE, linewidth = .3) +
     scale_x_continuous(limit = c(0, 120)) +
     scale_y_continuous(labels = scales::percent_format(
-        # scale = 1e-6,
-        # suffix = "M"
     )) +
     scale_color_manual(values = c("R" = "#ff0803", "D" = "#0000ff")) +
-    # geom_line(
-    #     data = preds,
-    #     aes(mo, gr, group = president, color = NULL),
-    #     linetype = 1,
-    #     linewidth = 1.8,
-    #     color = "gray60",
-    #     alpha = .5
-    # ) +
     geom_label(
         data = labs2,
         aes(
