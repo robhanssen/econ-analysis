@@ -20,7 +20,7 @@ jobs <- retrieve_data("PAYEMS", "FRED") %>%
     mutate(prezpd = cut(date, breaks = inaugdates))
 
 pjobs <- jobs %>%
-    filter(date > ymd(19801231)) %>%
+    filter(date > ymd(19810121)) %>%
     group_by(prezpd) %>%
     mutate(y = 1, mo = cumsum(y), gr = cumsum(growth_month)) %>%
     ungroup() %>%
