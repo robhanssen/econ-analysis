@@ -11,6 +11,7 @@ debt_gdp <-
     fill(GFDEBTN, .direction = "down") %>%
     drop_na() %>%
     mutate(gdp_debt_ratio = GFDEBTN / GDP / 1000)
+    
 
 debt_gdp_ratio <-
     full_join(presidentinfo, debt_gdp, by = c("inaugdate" = "date")) %>%
