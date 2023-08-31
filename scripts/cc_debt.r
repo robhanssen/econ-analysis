@@ -95,7 +95,7 @@ av2019 <- long_format_data %>%
     pull(av)
 
 av2019_line <-
-    tibble(x = ymd(20190101, 20240101),
+    tibble(x = ymd(20130101, 20240101),
            y = av2019)
 
 pred2022onw <- long_format_data %>%
@@ -139,10 +139,13 @@ xdate_g <-
     ) +
     annotate("text", x = xdate, y = 520, hjust = 1,
             size = 2,
-            label = format(xdate, format = "%b %d,\n%Y"))
+            label = format(xdate, format = "%b %d,\n%Y")) +
+    annotate("text", x = ymd(20140101), y = av2019 + 10,
+            hjust = 0, color = "gray70",
+            size = 2.5, label = "2019 average")
 
 
 ggsave("graphs/ccdebt.png",
-    width = 12, height = 5,
-    plot = cc_debt_g + xdate_g
+    width = 7, height = 5,
+    plot = xdate_g
 )
