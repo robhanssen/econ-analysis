@@ -71,12 +71,15 @@ gdp <-
 
 
 debt_gdp <-
-    left_join(debt, gdp, by = "date") %>%
-    fill(gdp, .direction = "down") %>%
+    full_join(debt, gdp, by = "date") %>%
+    arrange(date) %>%
+    mutate(gdp = zoo::na.approx(gdp, na.rm = FALSE)) %>%
+    fill(gdp, .direction = "downup") %>%
     mutate(
         gdp = gdp * 1e9,
         debt_gdp = total_public_debt / gdp
-    )
+    ) %>%
+    drop_na(debt_gdp)
 
 date_limits_df <-
     tribble(
@@ -133,7 +136,8 @@ gdp_extra_g <-
     geom_vline(xintercept = presidentinfo$inaugdate, alpha = .5) +
     labs(
         x = "", y = "Total Public Debt"
-    ) + theme(axis.text.x = element_blank(), axis.ticks.x =  element_blank())
+    ) +
+    theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
 
 #
 # adjust for CPI
@@ -218,7 +222,8 @@ infl_adj_g <-
         x = "", y = "Total Public Debt",
     ) +
     annotate(
-        "label", x = ymd(20140701), y = 13.5e12,
+        "label",
+        x = ymd(20140701), y = 13.5e12,
         color = "gray50", hjust = 0,
         label = glue::glue("Inflation-adjusted public\ndebt, in {infl_base_year} dollars") # nolint
     )
@@ -233,4 +238,27 @@ ggsave("graphs/public_debt.png",
                 "Gray line indicates total public debt adjusted to {infl_base_year} dollars" # nolint
             )
         )
+)
+
+#
+# Debt-GDP
+#
+
+
+debtgdp_g <-
+    debt_gdp %>%
+    filter(year >= 1980) %>%
+    ggplot(aes(x = date, y = debt_gdp)) +
+    # geom_point(shape = 1, alpha = .01) +
+    geom_line(alpha = .5, linewidth = .2) +
+    scale_y_continuous(limits = c(.5, 1.5)) +
+    geom_vline(
+        xintercept = inaugdates, lty = 1,
+        alpha = .1, linewidth = 1
+    ) +
+    labs(x = "", y = "Debt to GDP ratio",
+        title = "Ratio of Public Debt to GDP over time")
+
+ggsave("graphs/debt_gdp_usa.png",
+    height = 5, width = 7, plot = debtgdp_g
 )
