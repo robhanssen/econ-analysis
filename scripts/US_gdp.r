@@ -36,10 +36,10 @@ gdp_plot %>%
     scale_color_manual(values = partycolor) +
     theme(legend.position = "none")
 
-ggsave("graphs/us-gdp-since-1980.png",
-    width = 6,
-    height = 6
-)
+# ggsave("graphs/us-gdp-since-1980.png",
+#     width = 6,
+#     height = 6
+# )
 
 #
 # Obama to Trump transition
