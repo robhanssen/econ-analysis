@@ -36,6 +36,16 @@ inflation %>%
     filter(date >= cutoff_date) %>%
     ggplot() +
     aes(date, annual_inflation, group = index, linetype = index) +
+    ggrepel::geom_label_repel(
+        data = inflate_label,
+        aes(
+            x = date,
+            y = annual_inflation,
+            label = label
+        ),
+        hjust = "center",
+        size = 2
+    ) +
     geom_line() +
     scale_y_continuous(
         labels = scales::percent_format(),
@@ -52,15 +62,6 @@ inflation %>%
         x = "Date",
         y = "Annual inflation (in %)",
         caption = "Source: FRED CPIAUCSL, PCE and DFEDTARU"
-    ) +
-    ggrepel::geom_label_repel(
-        data = inflate_label,
-        aes(
-            x = date,
-            y = annual_inflation,
-            label = label
-        ),
-        hjust = "center"
     ) +
     geom_point(
         data = inflate_label,
