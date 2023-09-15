@@ -41,3 +41,4 @@ vignettes/*.pdf
 *.Rdata
 *.png
 Rplots.pdf
+*.html
