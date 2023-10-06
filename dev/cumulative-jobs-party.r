@@ -22,7 +22,7 @@ jobs <- retrieve_data("PAYEMS", "FRED") %>%
     inner_join(presidentinfo %>% mutate(prez = as.character(inaugdate)))
 
 jobs %>%
-    filter(date > ymd(19891231)) %>%
+    filter(date > ymd(19301231)) %>%
     group_by(party) %>%
     mutate(party_growth = cumsum(growth_month)) %>%
     ggplot(aes(x = date, y = party_growth, color = party)) + 
@@ -37,3 +37,11 @@ jobs %>%
         caption = "Source: FRED PAYEMS data")
 
 ggsave("dev/jobs_growth_by_party.png", width = 7, height = 5)
+
+
+    jobs %>%
+        filter(date > ymd(19301231)) %>%
+        group_by(party) %>%
+        mutate(party_growth = cumsum(growth_month)) %>%
+        slice_max(date) %>%
+        select(date, party, party_growth)
