@@ -80,7 +80,8 @@ gen_points <- function(date_limit, period, data) {
 uk_gdp <- retrieve_data(api) %>%
     pivot_wider(names_from = "index", values_from = "value") %>%
     filter(date >= ymd(19930101)) %>%
-    rename(ukgdp = "NGDPRSAXDCGBQ")
+    rename(ukgdp = "NGDPRSAXDCGBQ") %>%
+    mutate(ukgdp = 4 * ukgdp) # quarterly data to annual conversion
 
 date_limits_df <-
     tribble(
