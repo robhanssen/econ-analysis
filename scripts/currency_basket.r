@@ -16,22 +16,22 @@ gdp <- tribble(
     "pound", 2.638,
     "real", 2.054,
     "cad", 1.647,
-    "won", 1.531,
-    "rub", 1.574
+    "won", 1.531
+    # "rub", 1.574
 ) %>%
     mutate(fraction = gdp / sum(gdp))
 
-rub_raw <- quantmod::getSymbols(
-    "RUB=X",
-    src = "yahoo",
-    auto.assign = FALSE
-)
+# rub_raw <- quantmod::getSymbols(
+#     "RUB=X",
+#     src = "yahoo",
+#     auto.assign = FALSE
+# )
 
-usdrub <- tibble(
-    date = zoo::index(rub_raw),
-    rub = as.numeric(rub_raw$"RUB=X.Close")
-) %>%
-    filter(rub > 10)
+# usdrub <- tibble(
+#     date = zoo::index(rub_raw),
+#     rub = as.numeric(rub_raw$"RUB=X.Close")
+# ) %>%
+#     filter(rub > 10)
 
 curr_vec <- setNames(gdp$fraction, gdp$currency)
 
@@ -59,8 +59,9 @@ dolexch <-
         cad = "DEXCAUS",
         won = "DEXKOUS"
     ) %>%
-    mutate(usd = 1) %>%
-    left_join(usdrub)
+    mutate(usd = 1) 
+    # %>%
+    # left_join(usdrub)
 
 currency_graph <- function(curr = usd, datadf = dolexch, wght = curr_vec, from_date = lubridate::ymd(20000101)) {
     coins <- colnames(datadf)[-1]
@@ -96,7 +97,7 @@ currency_graph <- function(curr = usd, datadf = dolexch, wght = curr_vec, from_d
         )
 }
 
-first_date <- ymd("20080103") # first(dolexch$date)
+first_date <- ymd("20000101") # first(dolexch$date)
 
 
 p <- currency_graph(euro, from_date = first_date) /
@@ -104,7 +105,7 @@ p <- currency_graph(euro, from_date = first_date) /
     currency_graph(usd, from_date = first_date) /
     currency_graph(cad, from_date = first_date) /
     currency_graph(yuan, from_date = first_date) /
-    currency_graph(rub, from_date = first_date) /
+    # currency_graph(rub, from_date = first_date) /
     currency_graph(yen, from_date = first_date) /
     currency_graph(won, from_date = first_date) /
     currency_graph(rupee, from_date = first_date) +
