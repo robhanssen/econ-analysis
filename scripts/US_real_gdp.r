@@ -83,7 +83,7 @@ predictions <-
     gdpmodel %>%
     mutate(modelq = map(
         gdpmodel,
-        function(x) x %>% augment(interval = "confidence", newdata = gdp_predict_range) # nolint
+        function(x) x %>% augment(interval = "prediction", newdata = gdp_predict_range) # nolint
     )) %>%
     unnest(modelq) %>%
     mutate(across(.cols = .fitted:.upper, .fns = ~ 10^.x))
@@ -179,7 +179,7 @@ predictions_diff <-
     gdpmodel %>%
     mutate(modelq = map(
         gdpmodel,
-        function(x) x %>% augment(interval = "confidence", newdata = gdp_predict_range) # nolint
+        function(x) x %>% augment(interval = "prediction", newdata = gdp_predict_range) # nolint
     )) %>%
     unnest(modelq) %>%
     mutate(across(.cols = .fitted:.upper, .fns = ~ 10^.x)) %>%
