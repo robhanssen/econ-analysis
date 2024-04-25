@@ -256,8 +256,14 @@ debtgdp_g <-
         xintercept = inaugdates, lty = 1,
         alpha = .1, linewidth = 1
     ) +
-    labs(x = "", y = "Debt to GDP ratio",
-        title = "Ratio of Public Debt to GDP over time")
+    geom_vline(
+        xintercept = last(gdp$date),
+        lty = 2, alpha = .2
+    ) +
+    labs(
+        x = "", y = "Debt to GDP ratio",
+        title = "Ratio of Public Debt to GDP over time"
+    )
 
 ggsave("graphs/debt_gdp_usa.png",
     height = 5, width = 7, plot = debtgdp_g
