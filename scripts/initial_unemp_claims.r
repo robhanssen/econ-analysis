@@ -60,9 +60,11 @@ claimsplot <-
     labs(
         x = "", y = "",
         title = "Weekly initial unemployment claims",
-        caption = glue::glue("Source: FRED St. Louis ICSA data",
-                            "\nLine shows 26-week rolling average",
-                            "\nLatest date :{max_date}")
+        caption = glue::glue(
+            "Source: FRED St. Louis ICSA data",
+            "\nLine shows 26-week rolling average",
+            "\nLatest date: {max_date}"
+        )
     ) +
     annotate("text",
         x = cutoff_date + months(1),
