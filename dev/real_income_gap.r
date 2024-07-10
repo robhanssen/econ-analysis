@@ -20,21 +20,6 @@ income <-
     arrange(date) %>%
     filter(date > "1972-12-31")
 
-
-trend1 <-
-    income %>%
-    filter(date > "2003-03-01", date < "2007-06-02") %>%
-    lm(real_income ~ date, data = .) %>%
-    broom::augment(newdata = tibble(date = seq(ymd(20030301), today(), by = "month"))) %>%
-    rename(real_income = .fitted)
-
-trend2 <-
-    income %>%
-    filter(date > "2011-06-01", date < "2019-06-02") %>%
-    lm(real_income ~ date, data = .) %>%
-    broom::augment(newdata = tibble(date = seq(ymd(20110601), today(), by = "month"))) %>%
-    rename(real_income = .fitted)
-
 trend_exp <-
     income %>%
     filter(date > "1974-03-01", date < "2007-06-02") %>%
@@ -42,72 +27,57 @@ trend_exp <-
     broom::augment(newdata = tibble(date = seq(ymd(19740301), today(), by = "month"))) %>%
     mutate(real_income = exp(.fitted))
 
-trend_exp2 <-
-    income %>%
-    filter(date > "2010-03-01", date < "2019-06-02") %>%
-    lm(log(real_income) ~ date, data = .) %>%
-    broom::augment(newdata = tibble(date = seq(ymd(20100301), today(), by = "month"))) %>%
-    mutate(real_income = exp(.fitted))
-
-trend_exp3 <-
-    income %>%
-    filter(date > "2022-03-01") %>%
-    lm(log(real_income) ~ date, data = .) %>%
-    broom::augment(newdata = tibble(date = seq(ymd(20220301), today(), by = "month"))) %>%
-    mutate(real_income = exp(.fitted))
-
-
-x <- income %>%
-    filter(date > "2022-03-01") %>%
-    lm(log(real_income) ~ date, data = .) %>%
-    broom::tidy() %>%
-    pull("estimate")
-exp(x * 365)[2]
-
-x <- income %>%
-    filter(date > "1974-03-01", date < "2007-06-02") %>%
-    lm(log(real_income) ~ date, data = .) %>%
-    broom::tidy() %>%
-    pull("estimate")
-exp(x * 365)[2]
-
-
-x <- income %>%
-    filter(date > "2010-03-01", date < "2019-06-02") %>%
-    lm(log(real_income) ~ date, data = .) %>%
-    broom::tidy() %>%
-    pull("estimate")
-exp(x * 365)
-
-
-exp_income <- bind_rows(
-    last(trend_exp),
-    last(trend_exp2),
-    last(trend_exp3)
-)
-
-
-income %>%
+realincome_g <- income %>%
     ggplot(
         aes(x = date, y = real_income)
     ) +
     geom_point(shape = 1, alpha = .2) +
-    geom_line(data = trend_exp, color = "red") +
-    geom_line(data = trend_exp2, color = "red") +
-    geom_line(data = trend_exp3, color = "red") +
+    geom_line(data = trend_exp, color = "gray30") +
     scale_y_continuous(
         labels = scales::label_dollar(accuracy = 1, scale = 1, suffix = "")
     ) +
     labs(
         x = "",
         y = "Real personal income (in USD)",
-        title = "Real income (without government transfers) per working-age person in the US",
-        caption = "Income in chained 2017 dollars\nSource: FRED W875RX1 and LFWA64TTUSM647S"
-    ) +
-    ggrepel::geom_label_repel(
-        data = exp_income,
-        aes(x = date, y = real_income, label = round(real_income, digits = 0)),
-        hjust = 1
+        title = "Real income (without government transfers) per working-age person in the US"
     )
 
-ggsave("dev/real_income.png", width = 8, height = 5)
+effective_g <- 
+    inner_join(income, trend_exp, by = join_by(date)) %>%
+    mutate(
+        effective = real_income.x / real_income.y
+    ) %>%
+    ggplot(
+        aes(x = date, y = effective)
+    ) +
+    geom_point(shape = 1, alpha = .7) +
+    scale_y_continuous(
+        labels = scales::label_percent()
+    ) +
+    geom_hline(
+        yintercept = 1,
+        linewidth = 2,
+        alpha = .2
+    ) +
+    labs(
+        x = "",
+        y = "Effective Real personal income compared to model",
+        title = paste0(
+            "Real income (without government transfers) per working-age ",
+            "person in the US as fraction of modeled amount"
+        ),
+        subtitle = "Model based on real income between 1977 and 2007",
+    )
+
+p <-
+    realincome_g / effective_g +
+    plot_annotation(
+        caption = "Income in chained 2017 dollars\nSource: FRED W875RX1 and LFWA64TTUSM647S"
+    )
+
+ggsave("dev/real_income_gap.png",
+    width = 10, height = 10,
+    plot = p
+)
+
+
