@@ -42,7 +42,7 @@ realincome_g <- income %>%
         title = "Real income (without government transfers) per working-age person in the US"
     )
 
-effective_g <- 
+effective_g <-
     inner_join(income, trend_exp, by = join_by(date)) %>%
     mutate(
         effective = real_income.x / real_income.y
@@ -75,9 +75,7 @@ p <-
         caption = "Income in chained 2017 dollars\nSource: FRED W875RX1 and LFWA64TTUSM647S"
     )
 
-ggsave("dev/real_income_gap.png",
+ggsave("graphs/real_income_gap.png",
     width = 10, height = 10,
     plot = p
 )
-
-
