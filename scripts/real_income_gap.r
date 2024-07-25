@@ -42,17 +42,37 @@ realincome_g <- income %>%
         title = "Real income (without government transfers) per working-age person in the US"
     )
 
-effective_g <-
+effective <-
     inner_join(income, trend_exp, by = join_by(date)) %>%
     mutate(
         effective = real_income.x / real_income.y
-    ) %>%
+    )
+
+model2010s <-
+    effective %>%
+    filter(year(date) %in% 2013:2019) %>%
+    lm(effective ~ date, data = .) %>% 
+    broom::augment(
+        newdata = tibble(date = seq(ymd(20140101), ymd(20320101), by = "year"))
+    )
+
+effective_g <-
+    effective %>%
     ggplot(
         aes(x = date, y = effective)
     ) +
     geom_point(shape = 1, alpha = .7) +
+    geom_line(
+        data = model2010s, 
+        aes(y = .fitted),
+        linetype = "dashed"
+    ) +
     scale_y_continuous(
         labels = scales::label_percent()
+    ) +
+    scale_x_date(
+        breaks = seq(ymd(19700101), ymd(20300101), by = "10 years"),
+        date_labels = "%Y",
     ) +
     geom_hline(
         yintercept = 1,
