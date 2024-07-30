@@ -59,9 +59,9 @@ dolexch <-
         cad = "DEXCAUS",
         won = "DEXKOUS"
     ) %>%
-    mutate(usd = 1) 
-    # %>%
-    # left_join(usdrub)
+    mutate(usd = 1)
+# %>%
+# left_join(usdrub)
 
 currency_graph <- function(curr = usd, datadf = dolexch, wght = curr_vec, from_date = lubridate::ymd(20000101)) {
     coins <- colnames(datadf)[-1]
