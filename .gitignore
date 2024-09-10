@@ -42,3 +42,4 @@ vignettes/*.pdf
 *.png
 Rplots.pdf
 *.html
+.api_key.r
