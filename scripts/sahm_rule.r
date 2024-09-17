@@ -55,7 +55,12 @@ sahm_g <-
     scale_alpha_manual(values = c("TRUE" = 1, "FALSE" = .333)) +
     scale_y_continuous(
         name = "U3 Unemployment rate (in %)",
-        sec.axis = sec_axis(~ . / sahm_scale, name = "Sahm Rule value")
+        sec.axis = sec_axis(
+            ~ . / (100*sahm_scale),
+            name = "Sahm Rule value",
+            breaks = seq(0, 1, .005),
+            labels = scales::label_percent()
+        )
     ) +
     coord_cartesian(
         ylim = c(0, 15)
@@ -65,4 +70,5 @@ sahm_g <-
     )
 
 ggsave("graphs/sahm_rule_graph.png",
-    width = 8, height = 5, plot = sahm_g)
+    width = 8, height = 5, plot = sahm_g
+)
