@@ -41,7 +41,7 @@ sahm_g <-
         linewidth = 1.5,
         alpha = .1
     ) +
-    geom_line(alpha = .7, linewidth = .7) +
+    geom_line(alpha = .7, linewidth = 1, aes(color = sahm_warning, group = 1)) +
     geom_line(
         aes(y = sahm_scale * sahm),
         linetype = 1, alpha = .5, color = "gray50",
