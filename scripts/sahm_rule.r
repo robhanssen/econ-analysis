@@ -41,22 +41,22 @@ sahm_g <-
         linewidth = 1.5,
         alpha = .1
     ) +
-    geom_line(alpha = .7, linewidth = 1, aes(color = sahm_warning, group = 1)) +
+    geom_line(alpha = .7, linewidth = .5, aes(color = sahm_warning, group = 1)) +
     geom_line(
-        aes(y = sahm_scale * sahm),
-        linetype = 1, alpha = .5, color = "gray50",
+        aes(y = sahm_scale * sahm, color = sahm_warning, group = 2),
+        linetype = 1, alpha = .5, # color = "gray50",
         linewidth = .1
     ) +
     geom_point(
         aes(y = sahm_scale * sahm, color = sahm_warning, alpha = sahm_warning),
         shape = 19, size = .5
     ) +
-    scale_color_manual(values = c("TRUE" = "red", "FALSE" = "black")) +
+    scale_color_manual(values = c("TRUE" = "red", "FALSE" = "gray30")) +
     scale_alpha_manual(values = c("TRUE" = 1, "FALSE" = .333)) +
     scale_y_continuous(
         name = "U3 Unemployment rate (in %)",
         sec.axis = sec_axis(
-            ~ . / (100*sahm_scale),
+            ~ . / (100 * sahm_scale),
             name = "Sahm Rule value",
             breaks = seq(0, 1, .005),
             labels = scales::label_percent()
