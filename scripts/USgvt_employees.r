@@ -45,12 +45,12 @@ abs_gov <-
 #
 #
 
-gvt_pop <- retrieve_data(indexes = c("POPTOTUSA647NWDB", "USGOVT"), src = "FRED") %>%
+gvt_pop <- retrieve_data(indexes = c("POP", "USGOVT"), src = "FRED") %>%
     pivot_wider(names_from = "index", values_from = "value") %>%
     arrange(date) %>% 
-    mutate(POPTOTUSA647NWDB = zoo::na.approx(POPTOTUSA647NWDB, na.rm = FALSE)) %>% 
-    fill(POPTOTUSA647NWDB) %>% 
-    mutate(usgvtbypop = USGOVT / POPTOTUSA647NWDB  * 1000) %>%
+    mutate(POP = zoo::na.approx(POP, na.rm = FALSE)) %>% 
+    fill(POP) %>% 
+    mutate(usgvtbypop = USGOVT / POP  * 1000) %>%
     filter(!is.na(usgvtbypop)) %>%
     left_join(presidentinfo %>%
                 mutate(floordate = floor_date(inaugdate, unit = "year")) %>%

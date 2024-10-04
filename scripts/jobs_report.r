@@ -68,14 +68,14 @@ pjobs %>%
 ggsave("graphs/jobsgrowth_by_president.png", width = 8, height = 6)
 
 jobspop_dat <-
-    retrieve_data(indexes = c("PAYEMS", "POPTOTUSA647NWDB"), "FRED") %>%
+    retrieve_data(indexes = c("PAYEMS", "POP"), "FRED") %>%
     pivot_wider(names_from = "index", values_from = "value") %>%
     arrange(date) %>%
-    mutate(POPTOTUSA647NWDB = zoo::na.approx(POPTOTUSA647NWDB, na.rm = FALSE)) %>%
-    fill(POPTOTUSA647NWDB, .direction = "down") %>%
+    mutate(POP = zoo::na.approx(POP, na.rm = FALSE)) %>%
+    fill(POP, .direction = "down") %>%
     drop_na() %>%
     mutate(PAYEMS = PAYEMS * 1000) %>%
-    mutate(workingpop = PAYEMS / POPTOTUSA647NWDB)
+    mutate(workingpop = PAYEMS / POP / 1000)
 
 jobspop <-
     full_join(presidentinfo, jobspop_dat, by = c("inaugdate" = "date")) %>%
@@ -148,7 +148,7 @@ maxes <-
     ) +
     plot_annotation(
         caption =
-            "Source: FRED St. Louis, PAYEMS and POPTOTUSA647NWDB"
+            "Source: FRED St. Louis, PAYEMS and POP"
     )  & theme(
             plot.caption = element_text(hjust = 0),
             plot.title.position = "plot"
