@@ -36,21 +36,12 @@ abs_gov <-
     scale_color_manual(values = partycolor) +
     theme(legend.position = "none")
 
-# ggsave("graphs/us-gvt-employ-since-1960.png",
-#     width = 8,
-#     height = 6
-# )
-
-#
-#
-#
-
 gvt_pop <- retrieve_data(indexes = c("POP", "USGOVT"), src = "FRED") %>%
     pivot_wider(names_from = "index", values_from = "value") %>%
     arrange(date) %>% 
     mutate(POP = zoo::na.approx(POP, na.rm = FALSE)) %>% 
     fill(POP) %>% 
-    mutate(usgvtbypop = USGOVT / POP  * 1000) %>%
+    mutate(usgvtbypop = USGOVT / POP) %>%
     filter(!is.na(usgvtbypop)) %>%
     left_join(presidentinfo %>%
                 mutate(floordate = floor_date(inaugdate, unit = "year")) %>%
@@ -82,10 +73,6 @@ pop_graph <-
     scale_color_manual(values = partycolor) +
     theme(legend.position = "none")
 
-# ggsave("graphs/us-gvt-employ-since-1960-pct.png",
-#     width = 8,
-#     height = 6
-# )
 
 ggsave("graphs/us-gvt-employ-since-1960.png",
     width = 12,
