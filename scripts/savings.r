@@ -20,22 +20,22 @@ source("functions.r")
 
 savingspop_dat <-
     retrieve_data(
-        indexes = c("PMSAVE", "POPTOTUSA647NWDB", "CPIAUCSL"),
+        indexes = c("PMSAVE", "POP", "CPIAUCSL"),
         "FRED"
     ) %>%
     pivot_wider(names_from = "index", values_from = "value") %>%
     arrange(date) %>%
     janitor::clean_names() %>%
     mutate(
-        pop = zoo::na.approx(poptotusa647nwdb, na.rm = FALSE),
+        pop = zoo::na.approx(pop, na.rm = FALSE) * 1e3,
         cpi = zoo::na.approx(cpiaucsl, na.rm = FALSE),
         cpi_index = cpi[.$date == ymd(20160101)],
-        pmsave = pmsave / 12
+        pmsave = pmsave / 12 * 1e9
     ) %>%
     fill(pop, .direction = "downup") %>%
     fill(cpi, .direction = "downup") %>%
     mutate(
-        pm_save_by_person = pmsave * 1e9 / pop,
+        pm_save_by_person = pmsave / pop,
         pm_save_by_person_cpi = pm_save_by_person * cpi_index / cpi
     )
 
@@ -66,13 +66,13 @@ savings_cpi_g <-
     ) +
     labs(
         x = "", y = "Personal savings rate\nper person per month (in 2016 $)",
-        caption = "Source: FRED PMSAVE, POPTOTUSA647NWDB, CPIAUCSL",
+        caption = "Source: FRED PMSAVE, POP, CPIAUCSL",
         title = "CPI-adjusted savings per person per month"
     )
 
 line_cpi <-
     savingspop_dat %>%
-    filter(date %within% (ymd(20160101) %--% ymd(20191231))) %>%
+    filter(date %within% (ymd(20160101) %--% ymd(20181231))) %>%
     lm(pm_save_by_person_cpi ~ date, data = .) %>%
     broom::augment(
         newdata =
@@ -110,7 +110,7 @@ extrpolt <- extra_sav %>%
 nr <-
     extrpolt %>%
     filter(.fitted > 0) %>%
-    nrow() + 1
+    nrow() + 10
 
 xdate <- with(
     extrpolt,
