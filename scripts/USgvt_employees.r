@@ -23,7 +23,7 @@ abs_gov <-
     scale_y_continuous(
         breaks = seq(0, 100, 4) * 1000,
         limits = c(6000, NA),
-        labels = scales::number_format(accurary = 1, scale = 1/1000)
+        labels = scales::number_format(accurary = 1, scale = 1 / 1000)
     ) +
     geom_vline(xintercept = inaugdates, lty = 2, alpha = .3) +
     theme_light() +
@@ -38,15 +38,17 @@ abs_gov <-
 
 gvt_pop <- retrieve_data(indexes = c("POP", "USGOVT"), src = "FRED") %>%
     pivot_wider(names_from = "index", values_from = "value") %>%
-    arrange(date) %>% 
-    mutate(POP = zoo::na.approx(POP, na.rm = FALSE)) %>% 
-    fill(POP) %>% 
+    arrange(date) %>%
+    mutate(POP = zoo::na.approx(POP, na.rm = FALSE)) %>%
+    fill(POP) %>%
     mutate(usgvtbypop = USGOVT / POP) %>%
     filter(!is.na(usgvtbypop)) %>%
-    left_join(presidentinfo %>%
-                mutate(floordate = floor_date(inaugdate, unit = "year")) %>%
-                rename(date = floordate),
-                by = "date") %>%
+    left_join(
+        presidentinfo %>%
+            mutate(floordate = floor_date(inaugdate, unit = "year")) %>%
+            rename(date = floordate),
+        by = "date"
+    ) %>%
     fill(party, .direction = "down")
 
 
@@ -77,4 +79,5 @@ pop_graph <-
 ggsave("graphs/us-gvt-employ-since-1960.png",
     width = 12,
     height = 6,
-    plot = abs_gov + pop_graph)
+    plot = abs_gov + pop_graph
+)
