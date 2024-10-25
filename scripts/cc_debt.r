@@ -19,7 +19,7 @@ raw_data <-
         c(
             "CCLACBW027SBOG",
             "CPIAUCSL",
-            "POPTOTUSA647NWDB",
+            "POP",
             "GDP"
         )
     )
@@ -32,7 +32,7 @@ ccdebt_processed <-
     rename(
         ccdebt = CCLACBW027SBOG,
         cpi = CPIAUCSL,
-        pop = POPTOTUSA647NWDB,
+        pop = POP,
         gdp = GDP
     ) %>%
     arrange(date) %>%
@@ -46,7 +46,8 @@ ccdebt_processed <-
         ccdebt_cpi = ccdebt * first(cpi) / cpi,
         ccdebt_cpi_pop = ccdebt_cpi * first(pop) / pop,
         ccdebt_pop = ccdebt * first(pop) / pop,
-    )
+    ) %>%
+    drop_na() # remove NAs caused by POP predictions
 
 
 long_format_data <-
@@ -95,8 +96,10 @@ av2019 <- long_format_data %>%
     pull(av)
 
 av2019_line <-
-    tibble(x = ymd(20130101, 20240101),
-           y = av2019)
+    tibble(
+        x = ymd(20130101, 20240101),
+        y = av2019
+    )
 
 pred2022onw <- long_format_data %>%
     filter(index == "ccdebt_cpi_pop", year(date) >= 2022) %>%
@@ -130,19 +133,23 @@ xdate_g <-
         alpha = .25,
         color = "gray70",
         linewidth = 2
-        ) +
+    ) +
     geom_vline(
         xintercept = xdate,
         alpha = .25,
         color = "gray70",
         linewidth = 2
     ) +
-    annotate("text", x = xdate, y = 520, hjust = 1,
-            size = 2,
-            label = format(xdate, format = "%b %d,\n%Y")) +
-    annotate("text", x = ymd(20140101), y = av2019 + 10,
-            hjust = 0, color = "gray70",
-            size = 2.5, label = "2019 average")
+    annotate("text",
+        x = xdate, y = 520, hjust = 1,
+        size = 2,
+        label = format(xdate, format = "%b %d,\n%Y")
+    ) +
+    annotate("text",
+        x = ymd(20140101), y = av2019 + 10,
+        hjust = 0, color = "gray70",
+        size = 2.5, label = "2019 average"
+    )
 
 
 ggsave("graphs/ccdebt.png",
