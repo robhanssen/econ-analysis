@@ -11,7 +11,7 @@ data_raw <- url %>%
     html_node(xpath = '//*[@id="mw-content-text"]/div[1]/table[1]') %>%
     html_table(fill = TRUE) %>%
     janitor::clean_names() %>%
-    select(name_birth_death, term = term_14, party = party_b_15_2)
+    select(name_birth_death, term = starts_with("term"), party = party_b_17_2)
 
 data_cleaned <-
     data_raw %>%
