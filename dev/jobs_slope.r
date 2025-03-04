@@ -53,7 +53,7 @@ pd_df <-
         crossing(president = "George H. W. Bush", mo = 1:13),
         crossing(president = "George W. Bush", mo = 45:65),
         crossing(president = "Donald Trump", mo = 1:25),
-        crossing(president = "Joe Biden", mo = last_pres_time)
+        crossing(president = "Joe Biden", mo = 25:47)
     )
 
 
