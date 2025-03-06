@@ -60,11 +60,17 @@ long_format_data <-
 labels <-
     long_format_data %>%
     slice_max(date, by = index) %>%
-    select(date, value, index)
+    select(date, value, index) %>%
+    mutate(date = date + months(12))
 
 cc_debt_g <-
     long_format_data %>%
     ggplot(aes(x = date, y = value, color = index)) +
+    ggrepel::geom_label_repel(
+        data = labels,
+        hjust = 1,
+        aes(x = date, y = value, label = index)
+    ) +
     geom_line() +
     scale_x_date(
         date_labels = "%Y",
@@ -74,11 +80,6 @@ cc_debt_g <-
     scale_y_continuous(
         limits = c(500, NA),
         labels = scales::dollar_format(scale = 1, suffix = " B")
-    ) +
-    ggrepel::geom_label_repel(
-        data = labels,
-        hjust = 1,
-        aes(x = date, y = value, label = index)
     ) +
     labs(
         title = glue::glue("(Adjusted) credit card debt growth between {cpi_year} and {year(today())}"),
