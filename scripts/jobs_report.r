@@ -21,26 +21,26 @@ jobs <- retrieve_data("PAYEMS", "FRED") %>%
 
 pjobs <- jobs %>%
     filter(date > ymd(19810120)) %>%
-    group_by(prezpd) %>%
-    mutate(y = 1, mo = cumsum(y), gr = cumsum(growth_month)) %>%
-    ungroup() %>%
     mutate(inaugdate = ymd(paste(prezpd))) %>%
-    inner_join(presidentinfo)
+    inner_join(presidentinfo) %>%
+    group_by(president) %>%
+    mutate(y = 1, mo = cumsum(y), gr = cumsum(growth_month)) %>%
+    ungroup()
 
 labs <- pjobs %>%
-    mutate(inaugdate = ymd(paste(prezpd))) %>%
-    group_by(prezpd) %>%
+    # mutate(inaugdate = ymd(paste(prezpd))) %>%
+    group_by(president) %>%
     slice_max(mo, n = 1) %>%
-    ungroup() %>%
-    select(mo, gr, prezpd, inaugdate) %>%
-    inner_join(presidentinfo)
+    ungroup() #%>%
+    # select(mo, gr, prezpd, inaugdate) #%>%
+    # inner_join(presidentinfo)
 
 last_date <- max(pjobs$date)
 cpt <- glue::glue("Last updated on ", format(last_date, format = "%b %d, %Y"))
 
 pjobs %>%
     ggplot() +
-    aes(mo, gr, color = party, group = prezpd) +
+    aes(mo, gr, color = party, group = president) +
     geom_line(show.legend = FALSE, linewidth = 1) +
     scale_x_continuous(limit = c(0, 120)) +
     scale_y_continuous(labels = scales::number_format(
