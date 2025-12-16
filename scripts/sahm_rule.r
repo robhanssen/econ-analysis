@@ -28,7 +28,7 @@ sahm_g <-
     unrate %>%
     filter(date >= "1998-01-01") %>%
     mutate(
-        three_month_av = zoo::rollmeanr(value, 3, fill = NA),
+        three_month_av = zoo::rollmeanr(value, 3, fill = NA, na.rm = TRUE),
         twelve_month_min = zoo::rollapply(three_month_av, 12, min, fill = NA, align = "right"),
         sahm = three_month_av - twelve_month_min,
         sahm_warning = (sahm >= sahm_warning_limit)

@@ -29,6 +29,33 @@ broom::augment(mod) %>%
     geom_smooth(method = "lm")
 
 
+select_data <-
+    tibble(
+        DCOILWTICO = seq(10, 100, 1),
+        CPILFESL = last(dat$CPILFESL)
+    ) %>%
+    broom::augment(
+        mod,
+        newdata = .
+    )
+
+approx(select_data$.fitted,select_data$DCOILWTICO,
+    xout = c(2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5)
+)
+
+select_data %>%
+    ggplot(aes(x = DCOILWTICO, y = .fitted)) +
+    geom_line() +
+    # geom_hline(
+    #     yintercept = c(2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5),
+    #     linetype = 2,
+    #     color = "gray50"
+    # ) +
+    labs(
+        x = "WTI Oil price ($/barrel)",
+        y = "Predicted Gasoline price ($/gallon)"
+    )
+
 predgrid <-
     crossing(
         DCOILWTICO = seq(0, 150, 1),
