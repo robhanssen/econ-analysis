@@ -31,12 +31,17 @@ labs <- pjobs %>%
     # mutate(inaugdate = ymd(paste(prezpd))) %>%
     group_by(president) %>%
     slice_max(mo, n = 1) %>%
-    ungroup() #%>%
-    # select(mo, gr, prezpd, inaugdate) #%>%
-    # inner_join(presidentinfo)
+    ungroup() # %>%
+# select(mo, gr, prezpd, inaugdate) #%>%
+# inner_join(presidentinfo)
 
 last_date <- max(pjobs$date)
 cpt <- glue::glue("Last updated on ", format(last_date, format = "%b %d, %Y"))
+
+# filter Trump's last month from first term, since it was an outlier and not representative of his job growth
+pjobs_dot <- pjobs %>%
+    filter(mo == 49, president == "Donald Trump") %>%
+    select(president, mo, gr, party)
 
 pjobs %>%
     ggplot() +
@@ -47,6 +52,11 @@ pjobs %>%
         scale = 1e-6,
         suffix = "M"
     )) +
+    geom_point(
+        data = pjobs_dot, size = 3, alpha = .9,
+        shape = 21, fill = "white",
+        show.legend = FALSE
+    ) +
     scale_color_manual(values = c("R" = "#ff0803", "D" = "#0000ff")) +
     geom_label(
         data = labs,
@@ -119,7 +129,8 @@ maxes <-
         x = "",
         y = "",
         title = "Total working population"
-    )+ theme(axis.title = element_blank())
+    ) +
+    theme(axis.title = element_blank())
 ) +
     (jobspop %>%
         filter(date > ymd(19600101)) %>%
@@ -144,15 +155,16 @@ maxes <-
             x = "",
             y = "",
             title = "Working population as fraction of the total population"
-        ) + theme(axis.title = element_blank())
+        ) +
+        theme(axis.title = element_blank())
     ) +
     plot_annotation(
         caption =
             "Source: FRED St. Louis, PAYEMS and POP"
-    )  & theme(
-            plot.caption = element_text(hjust = 0),
-            plot.title.position = "plot"
-    )
+    ) & theme(
+    plot.caption = element_text(hjust = 0),
+    plot.title.position = "plot"
+)
 
 
 ggsave("graphs/labor-participation.png", width = 12, height = 6)
@@ -204,8 +216,10 @@ recov_plot <-
     geom_text(
         data = missing_jobs,
         size = 2,
-        aes(x = x, y = y,
-            label = glue::glue("{label} jobs\nare \"missing\""))
+        aes(
+            x = x, y = y,
+            label = glue::glue("{label} jobs\nare \"missing\"")
+        )
     ) +
     geom_line(aes(x = date, y = .fitted),
         linewidth = 1, alpha = .3,
