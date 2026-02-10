@@ -53,7 +53,7 @@ pjobs %>%
         suffix = "M"
     )) +
     geom_point(
-        data = pjobs_dot, size = 3, alpha = .9,
+        data = pjobs_dot, size = 2, alpha = .9,
         shape = 21, fill = "white",
         show.legend = FALSE
     ) +
