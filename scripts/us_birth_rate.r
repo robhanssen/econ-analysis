@@ -1,8 +1,10 @@
 library(tidyverse)
 library(lubridate)
 theme_set(theme_light() +
-    theme(plot.title.position = "plot",
-          panel.grid.minor.x = element_blank()))
+    theme(
+        plot.title.position = "plot",
+        panel.grid.minor.x = element_blank()
+    ))
 
 source("functions.r")
 
@@ -73,8 +75,9 @@ birthrate_g <-
     geom_point(shape = 1) +
     scale_y_continuous(breaks = seq(0, 25, 2), limits = c(0, NA)) +
     scale_x_date(
-            breaks = seq(ymd(19900101), today(), by = "5 years"),
-            date_label = "%Y", limits = ymd(19900101, NA)) +
+        breaks = seq(ymd(19900101), today(), by = "5 years"),
+        date_label = "%Y", limits = ymd(19900101, NA)
+    ) +
     coord_cartesian(ylim = c(0, 19)) +
     geom_line(
         data = birthrate_model,
