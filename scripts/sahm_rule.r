@@ -23,6 +23,7 @@ unrate <- get_index("UNRATE")
 sahm_warning_limit <- 0.5
 sahm_scale <- 5
 
+xlims <- range(unrate %>% filter(date >= "1998-01-01") %>% pull(date))
 
 sahm_g <-
     unrate %>%
@@ -63,7 +64,8 @@ sahm_g <-
         )
     ) +
     coord_cartesian(
-        ylim = c(0, 15)
+        ylim = c(0, 15),
+        xlim = xlims
     ) +
     geom_vline(
         xintercept = cycles$peak, alpha = .2

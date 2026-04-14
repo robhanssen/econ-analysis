@@ -107,6 +107,9 @@ dots_data <-
         ~ gen_points(date_limits_df$date_limits[[.x]], data = debt_gdp)
     )
 
+plot_data <- debt_gdp %>% filter(date > ymd(20010101))
+xlims <- range(plot_data$date)
+
 gdp_extra_g <-
     debt_gdp %>%
     filter(date > ymd(20010101)) %>%
@@ -137,6 +140,7 @@ gdp_extra_g <-
     labs(
         x = "", y = "Total Public Debt"
     ) +
+    coord_cartesian(xlim = xlims) +
     theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
 
 #
@@ -221,6 +225,7 @@ infl_adj_g <-
     labs(
         x = "", y = "Total Public Debt",
     ) +
+    coord_cartesian(xlim = xlims) +
     annotate(
         "label",
         x = ymd(20140701), y = 13.5e12,
@@ -260,6 +265,7 @@ debtgdp_g <-
         xintercept = last(gdp$date),
         lty = 2, alpha = .2
     ) +
+    coord_cartesian(xlim = xlims) +
     labs(
         x = "", y = "Debt to GDP ratio",
         title = "Ratio of Public Debt to GDP over time"
