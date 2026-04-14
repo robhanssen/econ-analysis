@@ -51,10 +51,12 @@ oil_fit <- oil_data %>%
         interval = "prediction"
     )
 
+xlim <- range(c(oil_data$date, fair_price$date))
+
 oil_data %>%
     ggplot(aes(x = date, y = DCOILWTICO)) +
-    geom_vline(xintercept = presidentinfo$inaugdate, 
-        color = "gray70", alpha = .1, linewidth = 2) +
+    # # geom_vline(xintercept = presidentinfo$inaugdate, 
+    #     color = "gray70", alpha = .1, linewidth = 2) +
     geom_point(shape = 1, alpha = .1, size = .3) +
     geom_line(data = fair_price, aes(y = fair_price)) +
     geom_line(data = oil_fit, aes(y = .upper), alpha = .8, color = "gray40") +
@@ -72,7 +74,7 @@ oil_data %>%
         x = xdate + weeks(13), y = c(15, 25),
         label = format(xdate, format = "%b %d, %Y"), hjust = 0
     ) +
-    coord_cartesian(ylim = c(0, NA)) +
+    coord_cartesian(ylim = c(0, NA), xlim = xlim) +
     scale_y_continuous(labels = scales::dollar_format()) +
     labs(x = "", y = "Oil price (West Texas Crude)")
 
