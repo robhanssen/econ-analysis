@@ -14,6 +14,8 @@ gvt_plot <-
     left_join(presidentinfo, by = "floordate") %>%
     fill(party, .direction = "down")
 
+xlim <- range(gvt_plot %>% filter(date > ymd("1959-12-31")) %>% pull(date))
+
 abs_gov <-
     gvt_plot %>%
     filter(date > ymd("1959-12-31")) %>%
@@ -26,6 +28,7 @@ abs_gov <-
         labels = scales::number_format(accurary = 1, scale = 1 / 1000)
     ) +
     geom_vline(xintercept = inaugdates, lty = 2, alpha = .3) +
+    coord_cartesian(xlim = xlim) +
     theme_light() +
     labs(
         x = "Date",
@@ -64,6 +67,7 @@ pop_graph <-
         labels = scales::percent_format(accuracy = .1)
     ) +
     geom_vline(xintercept = inaugdates, lty = 2, alpha = .3) +
+    coord_cartesian(xlim = xlim) +
     theme_light() +
     labs(
         x = "Date",

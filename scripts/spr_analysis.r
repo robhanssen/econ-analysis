@@ -46,10 +46,11 @@ spr_cleaned %>%
     ) %>%
     mutate(change = (min - max) / max)
 
+xlims <- range(spr_cleaned %>% filter(period > "2009-01-01") %>% pull(period))
 
 spr_g <-
     spr_cleaned %>%
-    filter(period > "2009-01-01") %>%
+    # filter(period > "2009-01-01") %>%
     ggplot(
         aes(x = period, y = value)
     ) +
@@ -66,6 +67,7 @@ spr_g <-
         xintercept = inaugdates, linetype = 2,
         color = "gray80"
     ) +
+    coord_cartesian(xlim = xlims) +
     labs(
         title = "Strategic Petroleum Reserve",
         caption = "Source: US Energy Information Administration API"
