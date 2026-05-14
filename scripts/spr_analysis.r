@@ -20,7 +20,7 @@ api <-
         "sort[0][direction]=desc&",
         "offset=0&",
         # "length=5000&",
-        "api_key={api_key}"
+        "api_key={spr_api_key}"
     )
 
 spr_raw <- jsonlite::read_json(api)
