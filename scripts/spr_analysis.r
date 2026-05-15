@@ -56,7 +56,7 @@ spr_g <-
     ) +
     geom_point(shape = 1, size = .25) +
     scale_y_continuous(
-        labels = scales::label_number(),
+        labels = scales::label_number(scale = 1e-3),
         limits = c(0, NA),
         name = "Strategic petrol reserve (in millions of barrels)"
     ) +
