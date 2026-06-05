@@ -28,7 +28,7 @@ jobs %>%
     ggplot(aes(x = date, y = party_growth, color = party)) + 
     geom_point(shape = 1, alpha = .3) + 
     geom_line(linetype = 2) +
-    geom_hline(yintercept = 0, linewidth = 2, alpha = .8) + 
+    # geom_hline(yintercept = 0, linewidth = 2, alpha = .8) + 
     scale_y_continuous(
         labels = scales::label_number()
     ) +
