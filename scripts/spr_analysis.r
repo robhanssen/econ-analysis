@@ -63,11 +63,11 @@ spr_g <-
     scale_x_date(
         name = ""
     ) +
-    geom_vline(
-        xintercept = inaugdates, linetype = 2,
-        color = "gray80"
-    ) +
-    coord_cartesian(xlim = xlims) +
+    # geom_vline(
+    #     xintercept = inaugdates, linetype = 2,
+    #     color = "gray80"
+    # ) +
+    # coord_cartesian(xlim = xlims) +
     labs(
         title = "Strategic Petroleum Reserve",
         caption = "Source: US Energy Information Administration API"
@@ -76,4 +76,34 @@ spr_g <-
 ggsave("graphs/strat_petrol_reserve.png",
     width = 8, height = 5,
     plot = spr_g
+)
+
+low_level <-
+    spr_cleaned %>%
+    filter(period > "2009-01-01") %>%
+    slice_min(value) %>%
+    pull(value)
+
+spr_cleaned_old <-
+    spr_cleaned %>% filter(period < "2009-01-01")
+
+low_level_date <- as.Date(approx(spr_cleaned_old$value, spr_cleaned_old$period, xout = low_level)$y)
+
+spr_g2 <-
+    spr_g +
+    geom_hline(yintercept = low_level, color = "red", linewidth = .25, linetype = "solid") +
+    annotate(
+        geom = "segment",
+        x = low_level_date + years(2), y = low_level * .75, xend = low_level_date + weeks(13), yend = low_level * .98,
+        arrow = arrow(length = unit(0.1, "inches"), angle = 25)
+    ) +
+    annotate(
+        geom = "text",
+        x = low_level_date + years(2), y = low_level * .75,
+        hjust = -0.02, vjust = 1, label = format(low_level_date, format = "%B %e %Y")
+    )
+
+ggsave("graphs/strat_petrol_reserve_low_date.png",
+    width = 8, height = 5,
+    plot = spr_g2
 )
