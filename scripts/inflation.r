@@ -13,7 +13,7 @@ theme_set(theme_light() +
 
 source("functions.r")
 
-inflation <- retrieve_data(c("CPIAUCSL", "CPILFESL", "PCEPILFE")) %>%
+inflation <- retrieve_data(c("CPIAUCSL", "CPILFESL", "PCEPI")) %>%
     arrange(date) %>%
     mutate(month = month(date)) %>%
     group_by(month, index) %>%
