@@ -9,7 +9,7 @@ options("getSymbols.warning4.0" = FALSE)
 #         value = as.numeric(t)
 #     )
 # }
-
+source(".api_key.r")
 BASE_API_URL <- paste0("https://api.stlouisfed.org/fred/series/observations?series_id=##IDX##&api_key=", fred_api_key, "&file_type=json")
 
 get_index <- function(index = "GDP", src = "FRED") {

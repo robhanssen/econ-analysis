@@ -1,8 +1,12 @@
-library(purrr)
+# library(purrr)
+# library(future)
+# library(furrr)
 
-safe_source <- safely(source, quiet = FALSE)
+future::plan(future::multisession, workers = 12)
 
-walk(
+safe_source <- purrr::safely(source, quiet = FALSE)
+
+furrr::future_walk(
     list.files(path = "./scripts/", pattern = "*.r$", full.names = TRUE),
     safe_source
 )
