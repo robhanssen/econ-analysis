@@ -19,76 +19,12 @@ dat <-
     fill(c("GASREGW", "CPILFESL", "DCOILWTICO"), .direction = "down") %>%
     filter(date >= "1992-01-20")
 
-recessions_map <- retrieve_data("JHDUSRGDPBR") %>%
-    select(-index) %>%
-    # use clearer name for the change in value
-    mutate(delta = value - lag(value)) %>%
-    filter(!is.na(delta) & delta != 0) %>%
-    # label each non-zero change as a recession "start" or "stop"
-    mutate(period = ifelse(delta > 0, "start", "stop")) %>%
-    select(-value, -delta) %>%
-    pivot_wider(names_from = period, values_from = date)
-
-
-recessions <- tibble(
-    start = as.Date(unlist(recessions_map$start)),
-    end = as.Date(unlist(recessions_map$stop))
-) %>%
-    filter(start > as.Date("1990-01-01"))
-
-
-dat %>%
-    mutate(
-        expected_gas_price = first(GASREGW) * (CPILFESL / first(CPILFESL))
-    ) %>%
-    ggplot(aes(x = date)) +
-    geom_line(aes(y = GASREGW), color = "blue") +
-    geom_line(aes(y = expected_gas_price), color = "red") +
-    scale_y_continuous(
-        name = "Gasoline Price ($/gallon)",
-        # sec.axis = sec_axis(~ . * 100, name = "CPI (1982-84=100)")
-    ) +
-    labs(
-        title = "Gasoline Prices and scaled CPI",
-        x = "Date"
-    ) +
-    geom_rect(
-        data = recessions,
-        inherit.aes = FALSE,
-        aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf),
-        fill = "grey",
-        alpha = 0.5
-    ) +
-    geom_text(
-        data = tibble(
-            date = as.Date(c("2008-09-01", "2020-03-01", "2016-01-01")),
-            label = c("Great\nRecession", "COVID-19\nRecession", "Oil glut"),
-            y = c(1.3, 1.4, 1.5)
-        ), aes(x = date, y = y, label = label)
-    ) +
-    geom_text(
-        data = tibble(
-            date = as.Date(c("2017-09-01", "2024-08-01")),
-            label = c("Real price", "scaled CPI\nfrom 1992"),
-            y = c(3.1, 1.95), color = c("blue", "red")
-        ), aes(x = date, y = y, label = label, color = I(color))
-    )
-
-
 mod <-
     lm(GASREGW ~ DCOILWTICO * CPILFESL, data = dat)
 
 rsq <- scales::pvalue(summary(mod)$adj.r.squared)
 
 formula <- "lm(GASREGW ~ DCOILWTICO * CPILFESL"
-
-str(summary(mod))
-
-broom::augment(mod) %>%
-    ggplot(aes(x = GASREGW, y = .fitted)) +
-    geom_point(alpha = .15, shape = 1) +
-    geom_smooth(method = "lm")
-
 
 select_data <-
     broom::augment(
@@ -107,10 +43,6 @@ data_source_limits <-
         c(min(date), max(date))
     ) %>% year()
 
-# approx(select_data$.fitted,select_data$DCOILWTICO,
-#     xout = c(2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5)
-# )
-
 
 target_price <- 2.00
 
@@ -122,7 +54,8 @@ two_dollar_limits <- map_dbl(
 
 limits <- last(dat$CPILFESL) * c(0.90, 1, 1.10)
 
-select_data %>%
+gas_model_g <- 
+    select_data %>%
     ggplot(aes(x = DCOILWTICO, y = .fitted)) +
     geom_line() +
     geom_ribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.2) +
@@ -163,4 +96,4 @@ select_data %>%
         plot.title = ggtext::element_markdown(size = 16)
     )
 
-ggsave("dev/gas_vs_inflation.png", width = 8, height = 5)
+ggsave("graphs/gas_vs_inflation.png", width = 8, height = 5, plot = gas_model_g)
