@@ -122,7 +122,7 @@ legal_min <- c("SPR Legal Minimum" = 252400, "SPR Collapse Risk" = 150000)
 xover <- with(spr_filter, approx(value, period, xout = legal_min))
 legal_date <- as.Date(with(spr_filter, xover$y, origin = "1970-01-01"))
 
-spr_min_g <- 
+spr_min_g <-
     spr_cleaned %>%
     filter(period > "2026-01-01") %>%
     ggplot(
@@ -153,7 +153,9 @@ spr_min_g <-
         label = format(legal_date, format = "%b %e %Y"), hjust = 1, vjust = 2
     ) +
     labs(
+        title = "Strategic Petroleum Reserve",
+        caption = "Source: US Energy Information Administration API",
         x = NULL, y = "Strategic Petrol Reserve level (in MBB)"
     )
 
-ggsave("graphs/strat_petrol_reserve_minimum.png", height = 6, width = 8, plot = spr_min_g)
+ggsave("graphs/strat_petrol_reserve_minimum.png", height = 5, width = 8, plot = spr_min_g)
