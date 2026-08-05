@@ -10,6 +10,8 @@ theme_set(theme_light() +
         plot.caption.position = "plot"
     ))
 
+spr_legal_min <- c("SPR Legal Minimum" = 252400, "SPR Collapse Risk" = 150000)
+
 source("functions.r")
 
 api <-
@@ -108,19 +110,26 @@ ggsave("graphs/strat_petrol_reserve_low_date.png",
     plot = spr_g2
 )
 
-spr_filter <-
-    spr_cleaned %>%
-    filter(period >= "2026-04-21") %>%
-    lm(value ~ period, data = .) %>%
-    broom::augment(
-        newdata = tibble(period = seq.Date(from = as.Date("2026-04-01"), to = as.Date("2027-11-01"), by = "1 week")),
-        interval = "prediction"
-    ) %>%
-    select(period, value = .fitted, .lower, .upper)
+spr_prediction <- function(dat, date_list) {
+    dataset <- dat %>%
+        filter(period >= min(date_list) & period <= max(date_list)) %>%
+        lm(value ~ period, data = .) %>%
+        broom::augment(
+            newdata = tibble(period = seq.Date(from = min(date_list), to = max(date_list) + years(1), by = "1 week")),
+            interval = "prediction"
+        ) %>%
+        select(period, value = .fitted, .lower, .upper)
 
-legal_min <- c("SPR Legal Minimum" = 252400, "SPR Collapse Risk" = 150000)
-xover <- with(spr_filter, approx(value, period, xout = legal_min))
-legal_date <- as.Date(with(spr_filter, xover$y, origin = "1970-01-01"))
+    xover <- with(dataset, approx(value, period, xout = spr_legal_min))
+    legal_date <- as.Date(with(dataset, xover$y, origin = "1970-01-01"))
+
+    list(
+        dataset = dataset,
+        legal_date = legal_date
+    )
+}
+
+spr_pred <- spr_prediction(dat = spr_cleaned, date_list = c(ymd(20260701), today()))
 
 spr_min_g <-
     spr_cleaned %>%
@@ -129,28 +138,33 @@ spr_min_g <-
         aes(x = period, y = value)
     ) +
     geom_ribbon(
-        data = spr_filter %>% filter(period < max(legal_date) + months(1)),
+        data = spr_pred$dataset %>% filter(period < max(spr_pred$legal_date) + dmonths(1)),
         aes(ymin = .lower, ymax = .upper),
         fill = "gray80", alpha = 0.2
     ) +
     geom_point(shape = 21, size = 3) +
     geom_line(
-        data = spr_filter %>% filter(period < max(legal_date) + months(1)),
+        data = spr_pred$dataset %>% filter(period < max(spr_pred$legal_date) + dmonths(1)),
         linetype = "dashed", color = "gray50"
     ) +
-    geom_hline(yintercept = legal_min, color = "red", linewidth = .25, linetype = "solid") +
+    geom_hline(yintercept = spr_legal_min, color = "red", linewidth = .25, linetype = "solid") +
+    scale_x_date(
+        name = NULL,
+        date_breaks = "3 months",
+        date_labels = "%b %Y"
+    ) +
     scale_y_continuous(
         breaks = 1e3 * seq(100, 500, 50),
         labels = scales::label_number(scale = 1e-3)
     ) +
     annotate(
-        geom = "text", x = ymd(20260101), y = legal_min,
-        color = "red", label = names(legal_min), hjust = 0, vjust = -1
+        geom = "text", x = ymd(20260101), y = spr_legal_min,
+        color = "red", label = names(spr_legal_min), hjust = 0, vjust = -1
     ) +
-    annotate(geom = "point", x = legal_date, y = legal_min, color = "red", size = 3) +
+    annotate(geom = "point", x = spr_pred$legal_date, y = spr_legal_min, color = "red", size = 3) +
     annotate(
-        geom = "text", x = legal_date, y = xover$x,
-        label = format(legal_date, format = "%b %e %Y"), hjust = 1, vjust = 2
+        geom = "text", x = spr_pred$legal_date, y = spr_legal_min,
+        label = format(spr_pred$legal_date, format = "%b %e %Y"), hjust = 1, vjust = 2
     ) +
     labs(
         title = "Strategic Petroleum Reserve",
