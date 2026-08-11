@@ -25,23 +25,34 @@ jobs %>%
     filter(date > ymd(19301231)) %>%
     group_by(party) %>%
     mutate(party_growth = cumsum(growth_month)) %>%
-    ggplot(aes(x = date, y = party_growth, color = party)) + 
-    geom_point(shape = 1, alpha = .3) + 
+    ggplot(aes(x = date, y = party_growth, color = party)) +
     geom_line(linetype = 2) +
-    # geom_hline(yintercept = 0, linewidth = 2, alpha = .8) + 
+    geom_point(shape = 1, alpha = .3, size = 1) +
     scale_y_continuous(
-        labels = scales::label_number()
+        labels = scales::label_number(scale = 1e-6, suffix = " M")
     ) +
-    scale_color_manual(values = c("R" = "red", "D" = "blue")) + 
-    labs(x = "", y = "Cumulative jobs growth by president party", 
-        caption = "Source: FRED PAYEMS data")
+    scale_color_manual(values = c("R" = "red", "D" = "blue"), labels = c("Republican", "Democratic")) +
+    labs(
+        x = "", y = "Cumulative jobs growth by president party (in millions)",
+        caption = "Source: FRED PAYEMS data",
+        title = "Cumulative Jobs Growth by President Party",
+        color = "President Party"
+    ) +
+    theme(
+        plot.caption = element_text(hjust = 0, size = 8),
+        plot.caption.position = "plot",
+        plot.title.position = "plot",
+        plot.title = element_text(size = 14, face = "bold"),
+        legend.position = "inside",
+        legend.justification = c(1, 0), legend.background = element_blank(),
+    )
 
-ggsave("dev/jobs_growth_by_party.png", width = 7, height = 5)
+ggsave("dev/jobs_growth_by_party.png", width = 8, height = 5)
 
 
-    jobs %>%
-        filter(date > ymd(19301231)) %>%
-        group_by(party) %>%
-        mutate(party_growth = cumsum(growth_month)) %>%
-        slice_max(date) %>%
-        select(date, party, party_growth)
+jobs %>%
+    filter(date > ymd(19301231)) %>%
+    group_by(party) %>%
+    mutate(party_growth = cumsum(growth_month)) %>%
+    slice_max(date) %>%
+    select(date, party, party_growth)
