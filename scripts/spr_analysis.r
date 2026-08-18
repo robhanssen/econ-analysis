@@ -176,13 +176,20 @@ ggsave("graphs/strat_petrol_reserve_minimum.png", height = 5, width = 8, plot = 
 
 #
 #
-# prez_plot_cdf <- prez_plot + 
+# prez_plot_cdf <- prez_plot +
 #      patchwork::inset_element(lognormal_plot, .0, .6, .3, .95)
 
 
-spr_g3 <- spr_g2  + patchwork::inset_element(
-    spr_min_g + theme(plot.title = element_blank(), axis.title = element_blank(), axis.text = element_text(size = 8), plot.caption = element_blank()),
-    .3, 0.025, .8, .625)
+spr_g3 <- spr_g2 + patchwork::inset_element(
+    spr_min_g +
+        theme(
+            plot.title = element_blank(),
+            axis.title = element_blank(),
+            axis.text = element_text(size = 8),
+            plot.caption = element_blank()
+        ),
+    left = .3, bottom = 0.025, right = .8, top = 0.625
+)
 
 ggsave("graphs/strat_petrol_reserve_low_date.png",
     width = 8, height = 5,
