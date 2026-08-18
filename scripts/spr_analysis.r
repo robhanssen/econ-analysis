@@ -105,10 +105,10 @@ spr_g2 <-
         hjust = -0.02, vjust = 1, label = format(low_level_date, format = "%B %e %Y")
     )
 
-ggsave("graphs/strat_petrol_reserve_low_date.png",
-    width = 8, height = 5,
-    plot = spr_g2
-)
+# ggsave("graphs/strat_petrol_reserve_low_date.png",
+#     width = 8, height = 5,
+#     plot = spr_g2
+# )
 
 spr_prediction <- function(dat, date_list) {
     dataset <- dat %>%
@@ -142,7 +142,7 @@ spr_min_g <-
         aes(ymin = .lower, ymax = .upper),
         fill = "gray80", alpha = 0.2
     ) +
-    geom_point(shape = 21, size = 3) +
+    geom_point(shape = 21, size = 1) +
     geom_line(
         data = spr_pred$dataset %>% filter(period < max(spr_pred$legal_date) + dmonths(1)),
         linetype = "dashed", color = "gray50"
@@ -159,12 +159,12 @@ spr_min_g <-
     ) +
     annotate(
         geom = "text", x = ymd(20260101), y = spr_legal_min,
-        color = "red", label = names(spr_legal_min), hjust = 0, vjust = -1
+        color = "red", label = names(spr_legal_min), hjust = 0, vjust = -0.5
     ) +
     annotate(geom = "point", x = spr_pred$legal_date, y = spr_legal_min, color = "red", size = 3) +
     annotate(
         geom = "text", x = spr_pred$legal_date, y = spr_legal_min,
-        label = format(spr_pred$legal_date, format = "%b %e %Y"), hjust = 1, vjust = 2
+        label = format(spr_pred$legal_date, format = "%b %e %Y"), hjust = 1, vjust = 1.5
     ) +
     labs(
         title = "Strategic Petroleum Reserve",
@@ -173,3 +173,18 @@ spr_min_g <-
     )
 
 ggsave("graphs/strat_petrol_reserve_minimum.png", height = 5, width = 8, plot = spr_min_g)
+
+#
+#
+# prez_plot_cdf <- prez_plot + 
+#      patchwork::inset_element(lognormal_plot, .0, .6, .3, .95)
+
+
+spr_g3 <- spr_g2  + patchwork::inset_element(
+    spr_min_g + theme(plot.title = element_blank(), axis.title = element_blank(), axis.text = element_text(size = 8), plot.caption = element_blank()),
+    .3, 0.025, .8, .625)
+
+ggsave("graphs/strat_petrol_reserve_low_date.png",
+    width = 8, height = 5,
+    plot = spr_g3
+)
