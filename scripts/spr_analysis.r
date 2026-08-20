@@ -75,10 +75,10 @@ spr_g <-
         caption = "Source: US Energy Information Administration API"
     )
 
-ggsave("graphs/strat_petrol_reserve.png",
-    width = 8, height = 5,
-    plot = spr_g
-)
+# ggsave("graphs/strat_petrol_reserve.png",
+#     width = 8, height = 5,
+#     plot = spr_g
+# )
 
 low_level <-
     spr_cleaned %>%
@@ -129,7 +129,13 @@ spr_prediction <- function(dat, date_list) {
     )
 }
 
-spr_pred <- spr_prediction(dat = spr_cleaned, date_list = c(ymd(20260701), today()))
+estimate_weeks <- 6
+
+spr_pred <-
+    spr_prediction(
+        dat = spr_cleaned %>% slice_tail(n = estimate_weeks),
+        date_list = c(today() - weeks(estimate_weeks), today())
+    )
 
 spr_min_g <-
     spr_cleaned %>%
@@ -151,7 +157,7 @@ spr_min_g <-
     scale_x_date(
         name = NULL,
         date_breaks = "3 months",
-        date_labels = "%b %Y"
+        date_labels = "%b\n%Y"
     ) +
     scale_y_continuous(
         breaks = 1e3 * seq(100, 500, 50),
@@ -168,7 +174,7 @@ spr_min_g <-
     ) +
     labs(
         title = "Strategic Petroleum Reserve",
-        caption = "Source: US Energy Information Administration API",
+        caption = glue::glue("Source: US Energy Information Administration API; prediction based on linear regression of last {estimate_weeks} weeks of data"),
         x = NULL, y = "Strategic Petrol Reserve level (in MBB)"
     )
 
@@ -180,16 +186,21 @@ ggsave("graphs/strat_petrol_reserve_minimum.png", height = 5, width = 8, plot = 
 #      patchwork::inset_element(lognormal_plot, .0, .6, .3, .95)
 
 
-spr_g3 <- spr_g2 + patchwork::inset_element(
-    spr_min_g +
-        theme(
-            plot.title = element_blank(),
-            axis.title = element_blank(),
-            axis.text = element_text(size = 8),
-            plot.caption = element_blank()
-        ),
-    left = .3, bottom = 0.025, right = .8, top = 0.625
-)
+spr_g3 <- spr_g2 +
+    labs(
+        caption = glue::glue("Source: US Energy Information Administration API; prediction based on linear regression of last {estimate_weeks} weeks of data")
+    ) +
+    patchwork::inset_element(
+        spr_min_g +
+            theme(
+                plot.title = element_blank(),
+                axis.title = element_blank(),
+                axis.text = element_text(size = 8),
+                plot.caption = element_blank(),
+                plot.background = element_rect(fill = "transparent", colour = NA)
+            ),
+        left = .3, bottom = 0.025, right = .8, top = 0.625
+    )
 
 ggsave("graphs/strat_petrol_reserve_low_date.png",
     width = 8, height = 5,
