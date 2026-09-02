@@ -38,6 +38,8 @@ spr_cleaned <-
     select(period, value, units) %>%
     arrange(period)
 
+last_date <- format(last(spr_cleaned$period), "%B %e, %Y")
+
 
 # find biggest change
 spr_cleaned %>%
@@ -72,7 +74,7 @@ spr_g <-
     # coord_cartesian(xlim = xlims) +
     labs(
         title = "Strategic Petroleum Reserve",
-        caption = "Source: US Energy Information Administration API"
+        caption = glue::glue("Source: US Energy Information Administration API\nLast updated: {last_date}")
     )
 
 # ggsave("graphs/strat_petrol_reserve.png",
@@ -174,7 +176,10 @@ spr_min_g <-
     ) +
     labs(
         title = "Strategic Petroleum Reserve",
-        caption = glue::glue("Source: US Energy Information Administration API; prediction based on linear regression of last {estimate_weeks} weeks of data"),
+        caption = glue::glue(
+            "Source: US Energy Information Administration API; prediction based on linear regression of last {estimate_weeks} weeks of data",
+            "\nLast updated: {last_date}"
+        ),
         x = NULL, y = "Strategic Petrol Reserve level (in MBB)"
     )
 
@@ -188,7 +193,10 @@ ggsave("graphs/strat_petrol_reserve_minimum.png", height = 5, width = 8, plot = 
 
 spr_g3 <- spr_g2 +
     labs(
-        caption = glue::glue("Source: US Energy Information Administration API; prediction based on linear regression of last {estimate_weeks} weeks of data")
+        caption = glue::glue(
+            "Source: US Energy Information Administration API; prediction based on linear regression of last {estimate_weeks} weeks of data",
+            "\nLast updated: {last_date}"
+        )
     ) +
     patchwork::inset_element(
         spr_min_g +
