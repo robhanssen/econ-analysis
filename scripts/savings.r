@@ -95,9 +95,9 @@ pers_savings_cpi_g <-
         data = line_cpi, aes(y = .fitted),
         lty = 2, color = "gray60"
     ) #+
-    # geom_line(aes(y = level2020),
-    #     lty = 2, color = "gray60"
-    # )
+# geom_line(aes(y = level2020),
+#     lty = 2, color = "gray60"
+# )
 
 extrpolt <- extra_sav %>%
     filter(date > ymd(20220601)) %>%
@@ -122,13 +122,13 @@ surplus_pers_savings_g <-
     extra_sav %>%
     ggplot(aes(x = date, y = cum_saving)) +
     geom_point() +
-    geom_line(
-        data = extrpolt[1:nr, ],
-        aes(y = .fitted),
-        alpha = .25,
-        color = "gray70",
-        linewidth = 2
-    ) +
+    # geom_line(
+    #     data = extrpolt[1:nr, ],
+    #     aes(y = .fitted),
+    #     alpha = .25,
+    #     color = "gray70",
+    #     linewidth = 2
+    # ) +
     annotate("text",
         x = xdate, y = 50, hjust = 1,
         label = format(xdate, format = "%b %d, %Y")
@@ -140,7 +140,25 @@ surplus_pers_savings_g <-
     )
 
 
-g <- surplus_pers_savings_g / pers_savings_cpi_g + plot_layout(heights = c(1,2))
+g <- surplus_pers_savings_g / pers_savings_cpi_g + plot_layout(heights = c(1, 2))
 
-ggsave("graphs/pers-savings-cpi.png", height = 9, width = 8,
-    plot = g)
+ggsave("graphs/pers-savings-cpi.png",
+    height = 9, width = 8,
+    plot = g
+)
+
+mn <- savingspop_dat %>%
+    filter(year(date) %in% c(2016:2018, 2023, 2024)) %>%
+    summarize(mean(pm_save_by_person_cpi, na.rm = TRUE)) %>%
+    pull()
+
+ggsave("graphs/pers-savings-cpi-zoom.png",
+    height = 5, width = 8,
+    plot =
+        savings_cpi_g + coord_cartesian(ylim = c(0, 400)) +
+            scale_y_continuous(
+                labels = scales::dollar_format(),
+                breaks = seq(0, 400, 50),
+            ) +
+            geom_hline(yintercept = mn, color = "red", linewidth = .25, linetype = "solid")
+)
