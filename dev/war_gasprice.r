@@ -66,7 +66,7 @@ all_g <-
         y = "Price shift (% or $)",
         color = "Conflict",
         title = "Absolute and relative gas and diesel price shift comparison since beginning of hostilities",
-        caption = glue::glue("Source: FRED, GASREGW, GASDESW. Shift since first day of hostilities: {startdaycomment} ")
+        caption = glue::glue("Source: FRED, GASREGW, GASDESW.\nShift since first day of hostilities: {startdaycomment} ")
     ) +
     theme(
         legend.position = "inside",
