@@ -14,7 +14,6 @@ source("functions.r")
 
 color <- c("Iran" = "black", "Ukraine" = "red")
 war_start <- c("Ukraine" = ymd(20220223), "Iran" = ymd(20260227))
-iran_war_length <- max(ceiling_date(ymd(today()), "year") - war_start["Iran"], max(dat$date) - war_start["Iran"])
 startdaycomment <- paste0(names(war_start), ": ", format(war_start, format = "%b %e, %Y"), collapse = " | ")
 
 select_war <- function(dat, war) {
@@ -32,11 +31,10 @@ dat <-
     mutate(across(!date, ~ zoo::na.approx(.x, na.rm = FALSE))) %>%
     fill(c("GASREGW", "CPILFESL", "GASDESW"), .direction = "downup")
 
+iran_war_length <- max(ceiling_date(ymd(today()), "year") - war_start["Iran"], max(dat$date) - war_start["Iran"])
+
 war_gas <-
-    bind_rows(
-        select_war(dat, "Ukraine"),
-        select_war(dat, "Iran")
-    ) %>%
+    map_dfr(names(war_start), ~ select_war(dat, .x)) %>%
     mutate(
         gas_diff_abs = GASREGW - first(GASREGW),
         gas_diff_rel = GASREGW / first(GASREGW) - 1,
