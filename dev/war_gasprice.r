@@ -49,6 +49,8 @@ war_gas <-
         datatype = ifelse(str_detect(name, "abs"), "Absolute", "Relative"),
     )
 
+last_date <- format(last(dat)$date, format = "%b %e, %Y")
+
 all_g <-
     war_gas %>%
     ggplot(aes(x = day, y = value, color = war)) +
@@ -66,7 +68,7 @@ all_g <-
         y = "Price shift (% or $)",
         color = "Conflict",
         title = "Absolute and relative gas and diesel price shift comparison since beginning of hostilities",
-        caption = glue::glue("Source: FRED, GASREGW, GASDESW.\nShift since first day of hostilities: {startdaycomment} ")
+        caption = glue::glue("Source: FRED, GASREGW, GASDESW. Most recent data from week of {last_date}\nShift since first day of hostilities: {startdaycomment} ")
     ) +
     theme(
         legend.position = "inside",
