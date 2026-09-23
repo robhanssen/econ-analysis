@@ -79,3 +79,110 @@ all_g <-
     )
 
 ggsave("dev/gasincrease_since_hostilities.png", width = 10, height = 8, plot = all_g)
+
+
+
+av_dat <- dat %>%
+    mutate(
+        year = year(date),
+        x = 1
+    ) %>%
+    mutate(
+        av_price_gas = cumsum(GASREGW) / cumsum(x),
+        as_price_des = cumsum(GASDESW) / cumsum(x),
+        .by = year
+    ) %>%
+    filter(year > 2020)
+
+last_by_year <- slice_max(av_dat, date, by = year, n = 1)
+
+av_dat %>%
+    ggplot(aes(x = date, y = av_price_gas, group = year)) +
+    geom_line() +
+    geom_point(aes(y = GASREGW), size = .1, alpha = .2) +
+    geom_text(data = last_by_year, aes(label = scales::dollar(av_price_gas)), vjust = -1) +
+    geom_point(data = last_by_year) +
+    scale_y_continuous(labels = scales::label_dollar(accuracy = 0.01)) +
+    labs(
+        x = NULL,
+        y = NULL
+    )
+
+
+pres <- read_csv("sources/presidents.csv") %>%
+    select(date = inaugdate, president) %>%
+    mutate(president = case_when(date == ymd("2025-01-20") ~ "Donald Trump 2", TRUE ~ president)) %>%
+    mutate(CPILFESL = NA, GASREGW = NA, GASDESW = NA) %>%
+    relocate(date, CPILFESL, GASREGW, GASDESW, president)
+
+
+av_dat <- dat %>%
+    mutate(president = NA) %>%
+    bind_rows(pres) %>%
+    arrange(date) %>%
+    fill(president, .direction = "down") %>%
+    drop_na() %>%
+    mutate(
+        year = year(date),
+        x = 1
+    ) %>%
+    mutate(
+        av_price_gas = cumsum(GASREGW) / cumsum(x),
+        av_price_des = cumsum(GASDESW) / cumsum(x),
+        .by = president
+    )
+
+min_year <- 2010
+
+last_by_year <-
+    slice_max(av_dat, date, by = president, n = 1) %>%
+    filter(year >= min_year)
+
+max_by_prez <-
+    slice_max(av_dat, av_price_des, by = president, n = 1) %>%
+    filter(year >= min_year)
+
+
+des_g <-
+    av_dat %>%
+    filter(year >= min_year) %>%
+    ggplot(aes(x = date, y = av_price_des, group = president)) +
+    geom_line() +
+    geom_point(aes(y = GASDESW), size = .1, alpha = .2) +
+    geom_text(data = last_by_year, aes(label = scales::dollar(av_price_des)), hjust = 0.5, vjust = -1) +
+    geom_point(data = last_by_year) +
+    geom_point(data = max_by_prez, color = "red") +
+    geom_text(data = max_by_prez, color = "red", aes(label = scales::dollar(av_price_des)), hjust = 0.5, vjust = -1) +
+    scale_y_continuous(labels = scales::label_dollar(accuracy = 0.01)) +
+    labs(
+        x = NULL,
+        y = "Diesel price (in $/gallon)"
+    )
+
+gas_g <-
+    av_dat %>%
+    filter(year >= min_year) %>%
+    ggplot(aes(x = date, y = av_price_gas, group = president)) +
+    geom_line() +
+    geom_point(aes(y = GASREGW), size = .1, alpha = .2) +
+    geom_text(data = last_by_year, aes(label = scales::dollar(av_price_gas)), hjust = 0.5, vjust = -1) +
+    geom_point(data = last_by_year) +
+    geom_point(data = max_by_prez, color = "red") +
+    geom_text(data = max_by_prez, color = "red", aes(label = scales::dollar(av_price_gas)), hjust = 0.5, vjust = -1) +
+    scale_y_continuous(labels = scales::label_dollar(accuracy = 0.01)) +
+    labs(
+        x = NULL,
+        y = "Gas price (in $/gallon)"
+    )
+
+ggsave("dev/av_diesel_gas_price.png",
+    width = 8, height = 7,
+    plot = gas_g / des_g +
+        plot_annotation(
+            title = "Cumulative average gas and diesel prices by presidential terms",
+            caption = "Source: FRED GASREGW and GASDESW. Cumulative averages (in <span style='color:black'><B>black</B></span>) and maxima (in <span style='color:red'>red</span>) by presidential term.",
+            theme = theme(
+                plot.caption = ggtext::element_textbox_simple()
+            )
+        )
+)
