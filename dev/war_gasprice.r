@@ -81,7 +81,6 @@ all_g <-
 ggsave("dev/gasincrease_since_hostilities.png", width = 10, height = 8, plot = all_g)
 
 
-
 av_dat <- dat %>%
     mutate(
         year = year(date),
@@ -89,19 +88,33 @@ av_dat <- dat %>%
     ) %>%
     mutate(
         av_price_gas = cumsum(GASREGW) / cumsum(x),
-        as_price_des = cumsum(GASDESW) / cumsum(x),
+        av_price_des = cumsum(GASDESW) / cumsum(x),
         .by = year
     ) %>%
     filter(year > 2020)
 
 last_by_year <- slice_max(av_dat, date, by = year, n = 1)
 
+max_by_year <-
+    slice_max(av_dat, av_price_gas, by = year, n = 1) %>%
+    filter(year >= min_year)
+
+overlap <- inner_join(max_by_year, last_by_year, by = "year") %>%
+    select(year, starts_with("av_price_gas")) %>%
+    mutate(
+        av_price_gas = ifelse(av_price_gas.x == av_price_gas.y, NA, av_price_gas.y),
+    )
+
+last_by_year$av_price_gas <- overlap$av_price_gas
+
 av_dat %>%
     ggplot(aes(x = date, y = av_price_gas, group = year)) +
     geom_line() +
-    geom_point(aes(y = GASREGW), size = .1, alpha = .2) +
+    geom_point(aes(y = GASREGW), size = .1, alpha = .5, color = "darkgreen") +
     geom_text(data = last_by_year, aes(label = scales::dollar(av_price_gas)), vjust = -1) +
     geom_point(data = last_by_year) +
+    geom_point(data = max_by_year, color = "red") +
+    geom_text(data = max_by_year, color = "red", aes(label = scales::dollar(av_price_gas)), hjust = 0.5, vjust = -1) +
     scale_y_continuous(labels = scales::label_dollar(accuracy = 0.01)) +
     labs(
         x = NULL,
@@ -179,10 +192,93 @@ ggsave("dev/av_diesel_gas_price.png",
     width = 8, height = 7,
     plot = gas_g / des_g +
         plot_annotation(
-            title = "Cumulative average gas and diesel prices by presidential terms",
-            caption = "Source: FRED GASREGW and GASDESW. Cumulative averages (in <span style='color:black'><B>black</B></span>) and maxima (in <span style='color:red'>red</span>) by presidential term.",
+            title = "Time-weighted average gas and diesel prices by presidential terms",
+            caption = "Source: FRED GASREGW and GASDESW. Time-weighted averages (in <span style='color:black'><B>black</B></span>) and maxima (in <span style='color:red'>red</span>) by presidential term.",
             theme = theme(
                 plot.caption = ggtext::element_textbox_simple()
             )
         )
 )
+
+
+#
+# let's generalize this in a function
+#
+#
+
+pres <- read_csv("sources/presidents.csv") %>%
+    select(date = inaugdate, president) %>%
+    mutate(president = case_when(date == ymd("2025-01-20") ~ "Donald Trump 2", TRUE ~ president)) %>%
+    mutate(CPILFESL = NA, GASREGW = NA, GASDESW = NA) %>%
+    relocate(date, CPILFESL, GASREGW, GASDESW, president)
+
+annotated_dat <- dat %>%
+    mutate(president = NA) %>%
+    bind_rows(pres) %>%
+    arrange(date) %>%
+    fill(president, .direction = "down") %>%
+    drop_na() %>%
+    mutate(
+        year = year(date),
+        x = 1
+    )
+
+#  %>%
+# mutate(
+#     av_price_gas = cumsum(GASREGW) / cumsum(x),
+#     av_price_des = cumsum(GASDESW) / cumsum(x),
+#     .by = president
+# )
+
+
+dat <- annotated_dat
+fueltype <- "gas"
+
+time_averaged_price_plot <- function(dat, fueltype, by, min_year = 2010) {
+    dat <- filter(dat, year >= min_year) %>%
+        rename(gas_price = GASREGW, des_price = GASDESW) %>%
+        mutate(
+            av_price_gas = cumsum(gas_price) / cumsum(x),
+            av_price_des = cumsum(des_price) / cumsum(x),
+            .by = {{ by }}
+        )
+
+    # fueltype <- match.arg(fueltype)
+    price_col <- ifelse(fueltype == "gas", "av_price_gas", "av_price_des")
+    weekly_price_col <- ifelse(fueltype == "gas", "gas_price", "des_price")
+    price_label <- ifelse(fueltype == "gas", "Gas price (in $/gallon)", "Diesel price (in $/gallon)")
+
+    last_by_year <-
+        slice_max(dat, date, by = {{ by }}, n = 1) %>%
+        filter(year >= min_year)
+
+    max_by_prez <-
+        slice_max(dat, !!sym(price_col), by = {{ by }}, n = 1) %>%
+        filter(year >= min_year)
+
+    dat %>%
+        filter(year >= min_year) %>%
+        ggplot(aes(x = date, y = !!sym(price_col), group = {{ by }})) +
+        geom_line() +
+        geom_point(
+            aes(y = !!sym(weekly_price_col)),
+            size = .05, alpha = .2, color = "darkgreen"
+        ) +
+        geom_text(data = last_by_year, aes(label = scales::dollar(!!sym(price_col))), hjust = 0.5, vjust = -1) +
+        geom_point(data = last_by_year) +
+        geom_point(data = max_by_prez, color = "red") +
+        geom_text(data = max_by_prez, color = "red", aes(label = scales::dollar(!!sym(price_col))), hjust = 0.5, vjust = -1) +
+        scale_y_continuous(labels = scales::label_dollar(accuracy = 0.01)) +
+        labs(
+            x = NULL,
+            y = price_label
+        )
+}
+
+x1 <- time_averaged_price_plot(annotated_dat, fueltype = "gas", by = president, min_year = 2010)
+x2 <- time_averaged_price_plot(annotated_dat, fueltype = "des", by = president, min_year = 2010)
+x3 <- time_averaged_price_plot(annotated_dat, fueltype = "gas", by = year, min_year = 2020)
+x4 <- time_averaged_price_plot(annotated_dat, fueltype = "des", by = year, min_year = 2020)
+
+x1 / x2
+x3 / x4
