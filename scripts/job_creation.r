@@ -29,7 +29,7 @@ jobgrowth_label <-
         label = paste0(format(date, format = "%b %Y"), "\n", index, "\n", jobgrowth, "K")
     )
 
-cutoff_date <- ymd(20100101)
+cutoff_date <- ymd(20110101)
 
 job_g <-
     jobgrowth %>%
@@ -43,7 +43,7 @@ job_g <-
             y = jobgrowth,
             label = label
         ),
-        hjust = "center",
+        hjust = "right",
         size = 2
     ) +
     geom_point(shape = 1, size = .5, alpha = .5) +
@@ -61,8 +61,8 @@ job_g <-
         x = "",
         y = "Monthly job growth (in 1,000s)",
         caption = paste0(
-            "Source: FRED PAYEMS\n",
-            "Density plot shows monthly job growth from 2010-2019, with 5% and 95% quantile errorbars"
+            "Source: FRED PAYEMS. ",
+            "Density plot shows monthly job growth from 2011-2019, with 5% and 95% quantile errorbars"
         )
     ) +
     geom_point(
@@ -78,7 +78,7 @@ job_g <-
 
 job_dens <-
     jobgrowth %>%
-    filter(year(date) %in% 2010:2019) %>%
+    filter(year(date) %in% 2011:2019) %>%
     ggplot(aes(y = jobgrowth)) +
     geom_density(fill = "gray70", alpha = .4, color = "gray90") +
     scale_y_continuous(
@@ -109,6 +109,6 @@ tot_jobs_g <-
     patchwork::plot_layout(widths = c(9, 1))
 
 ggsave("graphs/jobgrowth_density.png",
-    width = 8, height = 6,
+    width = 10, height = 5,
     plot = tot_jobs_g
 )
