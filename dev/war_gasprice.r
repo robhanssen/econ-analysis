@@ -80,6 +80,7 @@ all_g <-
 
 ggsave("dev/gasincrease_since_hostilities.png", width = 10, height = 8, plot = all_g)
 
+min_year <- 2010
 
 av_dat <- dat %>%
     mutate(
