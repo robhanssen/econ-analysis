@@ -268,7 +268,7 @@ time_averaged_price_plot <- function(dat, fueltype, by, min_year = 2010) {
         geom_text(data = last_by_year, aes(label = scales::dollar(!!sym(price_col))), hjust = 0.5, vjust = -1) +
         geom_point(data = last_by_year) +
         geom_point(data = max_by_prez, color = "red") +
-        geom_text(data = max_by_prez, color = "red", aes(label = scales::dollar(!!sym(price_col))), hjust = 0.5, vjust = -1) +
+        geom_text(data = max_by_prez, color = "red", aes(label = scales::dollar(!!sym(price_col))), hjust = 0.5, vjust = 2) +
         scale_y_continuous(labels = scales::label_dollar(accuracy = 0.01)) +
         labs(
             x = NULL,
@@ -276,10 +276,32 @@ time_averaged_price_plot <- function(dat, fueltype, by, min_year = 2010) {
         )
 }
 
-x1 <- time_averaged_price_plot(annotated_dat, fueltype = "gas", by = president, min_year = 2010)
-x2 <- time_averaged_price_plot(annotated_dat, fueltype = "des", by = president, min_year = 2010)
-x3 <- time_averaged_price_plot(annotated_dat, fueltype = "gas", by = year, min_year = 2020)
-x4 <- time_averaged_price_plot(annotated_dat, fueltype = "des", by = year, min_year = 2020)
+x1 <-
+    time_averaged_price_plot(annotated_dat, fueltype = "gas", by = president, min_year = 2010) +
+    labs(
+        title = "Time-weighed average gas prices over presidential terms"
+    )
 
-x1 / x2
-x3 / x4
+x2 <- time_averaged_price_plot(annotated_dat, fueltype = "des", by = president, min_year = 2010) +
+    labs(
+        title = "Time-weighed average diesel price over presidential terms"
+    )
+
+x3 <- time_averaged_price_plot(annotated_dat, fueltype = "gas", by = year, min_year = 2020) +
+    labs(
+        title = "Time-weighed average gas prices by year"
+    )
+
+
+x4 <- time_averaged_price_plot(annotated_dat, fueltype = "des", by = year, min_year = 2020) +
+    labs(
+        title = "Time-weighed average diesel price by year"
+    )
+
+p <- (x3 + x4) +
+    plot_annotation(
+        caption = "Source: FRED GASREGW and GASDESW. Peak average shown in <span style= 'color:red'>red</span>"
+    ) &
+    theme(plot.caption = ggtext::element_markdown(hjust = 0), plot.title = element_text(hjust = 0.5))
+
+ggsave("dev/time-weighed-gas-diesel-price.png", width = 12, height = 5, plot = p)
